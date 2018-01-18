@@ -1,0 +1,5 @@
+# executables
+*.x
+
+# build-directory
+build/*
