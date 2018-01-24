@@ -7,8 +7,9 @@
 #include <boost/numeric/odeint/integrate/integrate_n_steps.hpp>
 #include <stdexcept>
 
-#include <iostream>
-
+// TODO: Check inheritance; is virtual necessary here?
+// TODO: Use correct casting of pointers
+// TODO: Error handling without exception
 namespace nonlinear_systems {
   template<typename GenericODE,
     typename state_type = std::vector<double>,
@@ -16,57 +17,18 @@ namespace nonlinear_systems {
       class GenericSystem {
         public:
           GenericSystem(unsigned int system_size, unsigned int dimension,
-              void* parameters) {
-            N = system_size;
-            d = dimension;
-            x.resize(N*d);
-            t = 0.;
-            ode = new GenericODE(parameters);
-          };
-
-          state_type GetPosition() {
-            return x; 
-          };
-
-          double GetTime() {
-            return t; 
-          };
-
-          state_type CalculateMeanField() {
-            state_type mean_field(d); 
-            for (unsigned int i = 0; i < N; ++i) {
-              for (unsigned int j = 0; j < d; ++j) {
-                mean_field[j] += x[d*i+j];
-              }
-            }
-            for (unsigned int i = 0; i < d; ++i) {
-              mean_field[i] /= (double)N;
-            }
-            return mean_field;
-          };
-
-          void SetPosition(state_type& new_position) {
-            if (new_position.size() != N*d) {
-              throw std::length_error("Trying to set new position of wrong length!");
-            }
-            x = new_position; 
-          };
-
-          void Integrate(double dt, unsigned int number_steps) {
-            t = boost::numeric::odeint::integrate_n_steps(stepper, (*ode),
-                x, t, dt, number_steps);
-          };
-
+              void* parameters);
+          state_type GetPosition();
+          void SetPosition(state_type& new_position);
+          double GetTime();
+          void SetParameters(void* parameters);
+          state_type CalculateMeanField();
+          
           template <typename observer_type>
             void Integrate(double dt, unsigned int number_steps, 
-                observer_type observer) {
-              t = boost::numeric::odeint::integrate_n_steps(stepper, (*ode),
-                  x, t, dt, number_steps, observer);
-            };
+                observer_type observer);
+          void Integrate(double dt, unsigned int number_steps);
 
-          void UpdateParameters(void* parameters) {
-            ode = new GenericODE(parameters);
-          }
 
         private:
           GenericODE* ode;
@@ -77,4 +39,75 @@ namespace nonlinear_systems {
       };
 } // nonlinear_systems
 
+
+using namespace nonlinear_systems;
+
+
+template<typename GenericODE, typename state_type, typename stepper_type>
+GenericSystem<GenericODE, state_type, stepper_type>::
+GenericSystem(unsigned int system_size, unsigned int dimension, 
+    void* parameters) {
+  N = system_size;
+  d = dimension;
+  x.resize(N*d);
+  t = 0.;
+  ode = new GenericODE(parameters);
+}
+
+template<typename GenericODE, typename state_type, typename stepper_type>
+state_type GenericSystem<GenericODE, state_type, stepper_type>::
+GetPosition() {
+  return x;
+} 
+
+template<typename GenericODE, typename state_type, typename stepper_type>
+double GenericSystem<GenericODE, state_type, stepper_type>::
+GetTime() {
+  return t;
+}
+
+template<typename GenericODE, typename state_type, typename stepper_type>
+state_type GenericSystem<GenericODE, state_type, stepper_type>::
+CalculateMeanField() {
+  state_type mean_field(d); 
+  for (unsigned int i = 0; i < N; ++i) {
+    for (unsigned int j = 0; j < d; ++j) {
+      mean_field[j] += x[d*i+j];
+
+    }
+  }
+  for (unsigned int i = 0; i < d; ++i) {
+    mean_field[i] /= (double)N;
+  }
+  return mean_field;
+}
+
+template<typename GenericODE, typename state_type, typename stepper_type>
+void GenericSystem<GenericODE, state_type, stepper_type>::
+SetPosition(state_type& new_position) {
+  if (new_position.size() != N*d) {
+    throw std::length_error("Trying to set new position of wrong length!");
+  }
+  x = new_position; 
+}
+template<typename GenericODE, typename state_type, typename stepper_type>
+void GenericSystem<GenericODE, state_type, stepper_type>::
+Integrate(double dt, unsigned int number_steps) {
+  t = boost::numeric::odeint::integrate_n_steps(stepper, (*ode),
+      x, t, dt, number_steps);
+}
+
+template <typename GenericODE, typename state_type, typename stepper_type>
+template <typename observer_type>
+void GenericSystem<GenericODE, state_type, stepper_type>::
+Integrate(double dt, unsigned int number_steps, observer_type observer) {
+  t = boost::numeric::odeint::integrate_n_steps(stepper, (*ode),
+      x, t, dt, number_steps, observer);
+}
+
+template <typename GenericODE, typename state_type, typename stepper_type>
+void GenericSystem<GenericODE, state_type, stepper_type>::
+SetParameters(void* parameters) {
+  ode = new GenericODE(parameters);
+}
 #endif
