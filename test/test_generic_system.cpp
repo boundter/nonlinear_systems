@@ -1,9 +1,7 @@
 #define BOOST_TEST_MODULE GenericSystem
 #include <boost/test/included/unit_test.hpp>
-#include "../include/system/generic_system.hpp"
+#include <nonlinear_systems/systems/generic_system.hpp>
 #include <stdexcept>
-
-#include <iostream>
 
 typedef std::vector<double> state_type;
 typedef boost::numeric::odeint::runge_kutta4<state_type> stepper_type;

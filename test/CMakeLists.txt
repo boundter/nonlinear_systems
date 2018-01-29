@@ -1,2 +1,3 @@
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/test)
 add_executable(test_generic_system.x test_generic_system.cpp)
+target_link_libraries(test_generic_system.x nonlinear_systems)
+add_test(test_generic_system test_generic_system.x)
