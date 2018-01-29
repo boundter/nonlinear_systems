@@ -5,6 +5,8 @@ set(CMAKE_BUILD_TYPE Release)
 # version string 0.1
 set(VERSION "0.1" CACHE STRING "version" FORCE)
 
+enable_testing()
+
 # use c++11 standard
 set(CMAKE_CXX_STANDARD 11)
 
@@ -17,6 +19,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "-w")
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
+option(NL_BUILD_TESTS "Set ON to enable tests" OFF)
 
 add_library(nonlinear_systems INTERFACE)
 target_include_directories(nonlinear_systems INTERFACE
@@ -58,3 +61,5 @@ install(
 install(
   DIRECTORY ${PROJECT_SOURCE_DIR}/include
   DESTINATION ${CMAKE_INSTALL_PREFIX})
+
+add_subdirectory(test)
