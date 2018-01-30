@@ -8,7 +8,6 @@
 #include <stdexcept>
 
 // TODO: Check inheritance; is virtual necessary here?
-// TODO: Use correct casting of pointers
 // TODO: Error handling without exception
 namespace nonlinear_systems {
   template<typename GenericODE,
@@ -77,7 +76,7 @@ CalculateMeanField() {
     }
   }
   for (unsigned int i = 0; i < d; ++i) {
-    mean_field[i] /= (double)N;
+    mean_field[i] /= static_cast<double>(N);
   }
   return mean_field;
 }
