@@ -24,6 +24,22 @@ class HarmonicOscillator {
     }
 };
 
+class TwoHarmonicOscillators {
+  public:
+    double* omega;
+
+    TwoHarmonicOscillators(void* params) {
+      omega = reinterpret_cast<double*>(params);
+    }
+
+    void operator()(const state_type& x, state_type& dx, const double t) {
+      dx[0] = x[1];
+      dx[1] = -omega[0]*omega[0]*x[0];
+      dx[2] = x[3];
+      dx[3] = -omega[1]*omega[1]*x[2];
+    }
+};
+
 
 BOOST_AUTO_TEST_CASE(test_Position) {
   double params[] = {1.};
@@ -63,7 +79,7 @@ BOOST_AUTO_TEST_CASE(test_Integrate){
   // Analytic solution is x=A*sin(omega*t + phi)
   // for x(0)=0 and \dot{x}(0)=1 and with omega=1 A=1 and phi=0
   double dt_position = 0.01;
-  unsigned int n_position = 1000;
+  unsigned int n_position = 10000;
   double t_position = dt_position*static_cast<double>(n_position);
   state_type initial_condition {0., 1.};
   system.SetPosition(initial_condition);
@@ -71,6 +87,48 @@ BOOST_AUTO_TEST_CASE(test_Integrate){
   state_type analytic_solution {sin(t_position), cos(t_position)};
   state_type numeric_solution = system.GetPosition();
   for (size_t i = 0; i < numeric_solution.size(); ++i) {
-    BOOST_CHECK_CLOSE_FRACTION(numeric_solution[i], analytic_solution[i], 0.1);
+    BOOST_CHECK_CLOSE_FRACTION(numeric_solution[i], analytic_solution[i], 0.01);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_Parameters){
+  double params = 1.;
+  GenericSystem<HarmonicOscillator> system =
+    GenericSystem<HarmonicOscillator>(1, 2, &params);
+
+  // Integrate a given time with new parameters and check closeness
+  // if everything is like before, but with omega =/= 1, then A = 1/omega
+  double dt = 0.01;
+  unsigned int n = 10000;
+  double t = dt*static_cast<double>(n);
+  state_type initial_condition {0., 1.};
+  system.SetPosition(initial_condition);
+  double new_params = 3.;
+  system.SetParameters(&new_params);
+  system.Integrate(dt, n);
+  state_type analytic_solution {1./new_params*sin(new_params*t), cos(new_params*t)};
+  state_type numeric_solution = system.GetPosition();
+  for (size_t i = 0; i < numeric_solution.size(); ++i) {
+    BOOST_CHECK_CLOSE_FRACTION(numeric_solution[i], analytic_solution[i], 0.01);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_MeanField){
+ double params[2] = {1., 3.};
+  GenericSystem<TwoHarmonicOscillators> system = 
+   GenericSystem<TwoHarmonicOscillators>(2, 2, &params); 
+
+  double dt = 0.01;
+  unsigned int n = 10000;
+  double t = dt*static_cast<double>(n);
+  state_type initial_condition {0., 1., 0., 1.};
+  system.SetPosition(initial_condition);
+  system.Integrate(dt, n);
+  state_type numeric_mean_field = system.CalculateMeanField();
+  state_type analytic_mean_field {1/2.*(sin(t) + 1./params[1]*sin(params[1]*t)),
+                                  1/2.*(cos(t) + cos(params[1]*t))};
+  for (size_t i = 0; i < numeric_mean_field.size(); ++i) {
+    BOOST_CHECK_CLOSE_FRACTION(numeric_mean_field[i], analytic_mean_field[i],
+        0.01);
   }
 }
