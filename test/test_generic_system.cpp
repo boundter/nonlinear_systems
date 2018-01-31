@@ -8,6 +8,8 @@
 typedef std::vector<double> state_type;
 typedef boost::numeric::odeint::runge_kutta4<state_type> stepper_type;
 
+// TODO: Change boost_check_close_fraction to something absolute
+
 using namespace nonlinear_systems;
 
 class HarmonicOscillator {
@@ -162,4 +164,11 @@ BOOST_AUTO_TEST_CASE(test_CalculatePeriod){
   double linear_T = system.CalculatePeriod(n_average, dt, CrossedPositiveYAxis,
       LinearApprox);
   BOOST_CHECK_CLOSE_FRACTION(T, 2*M_PI, 0.005);
+
+  // Multiple crossings for a harmonic oscillator should lead to a
+  // multiplication of the period
+  double double_T = system.CalculatePeriod(n_average, dt, CrossedPositiveYAxis,
+      2);
+  BOOST_CHECK_CLOSE_FRACTION(double_T, 4*M_PI, 0.005);
+
 }
