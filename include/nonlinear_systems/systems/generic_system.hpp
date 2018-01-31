@@ -9,8 +9,8 @@
 
 // TODO: Check inheritance; is virtual necessary here?
 // TODO: Error handling without exception
-// TODO: Poincare surface
 // TODO: Poincare surface for mean-field
+// TODO: Poincare surface multiple crossings
 namespace nonlinear_systems {
   template<typename GenericODE,
     typename state_type = std::vector<double>,
@@ -35,7 +35,7 @@ namespace nonlinear_systems {
                 const state_type& /*current_state*/),
               double (*ApproximateCrossingPoincareManifold)(
                 const state_type& /*previous_state*/, double /*previous_t*/,
-                const state_type& /*current_state*/), double /*current_t*/);
+                const state_type& /*current_state*/, double /*current_t*/));
           
           template <typename observer_type>
             void Integrate(double dt, unsigned int number_steps, 
@@ -50,7 +50,7 @@ namespace nonlinear_systems {
           double t;
           stepper_type stepper;
 
-          double BifurcationZerothOrderCrossingPoincare(
+          static double BifurcationZerothOrderCrossingPoincare(
               const state_type& previous_state, double previous_t,
               const state_type& current_state, double current_t);
       };
@@ -136,7 +136,8 @@ CalculatePeriod(unsigned int n_average, double dt,
   return CalculatePeriod(n_average, dt, CrossedPoincareManifold, 
       BifurcationZerothOrderCrossingPoincare);
 }
-
+// TODO: Check for NULL-Pointer
+// TODO: remove infinte loop
 template <typename GenericODE, typename state_type, typename stepper_type>
 double GenericSystem<GenericODE, state_type, stepper_type>::
 CalculatePeriod(unsigned int n_average, double dt,
@@ -144,12 +145,11 @@ CalculatePeriod(unsigned int n_average, double dt,
                                     const state_type& /*current_state*/),
     double (*ApproximateCrossingPoincareManifold)(
       const state_type& /*previous_state*/, double /*previous_time*/,
-      const state_type& /*current_state*/), double /*current_time*/){
-  unsigned int n_periods_found = 0;
+      const state_type& /*current_state*/, double /*current_time*/)){
   std::vector<double> times_of_crossing;
-  state_type previous_state;
+  state_type previous_state = GetPosition();
   // we need one more time of crossing than periods
-  while (n_periods_found < n_average + 1) {
+  while (times_of_crossing.size() < n_average + 1) {
     Integrate(dt, 1);
     state_type current_state = GetPosition();
     if (CrossedPoincareManifold(previous_state, current_state)) {
