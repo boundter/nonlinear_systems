@@ -75,17 +75,20 @@ GenericSystem(unsigned int system_size, unsigned int dimension,
   ode = new GenericODE(parameters);
 }
 
+
 template<typename GenericODE, typename state_type, typename stepper_type>
 state_type GenericSystem<GenericODE, state_type, stepper_type>::
 GetPosition() {
   return x;
 } 
 
+
 template<typename GenericODE, typename state_type, typename stepper_type>
 double GenericSystem<GenericODE, state_type, stepper_type>::
 GetTime() {
   return t;
 }
+
 
 template<typename GenericODE, typename state_type, typename stepper_type>
 state_type GenericSystem<GenericODE, state_type, stepper_type>::
@@ -103,6 +106,7 @@ CalculateMeanField() {
   return mean_field;
 }
 
+
 template<typename GenericODE, typename state_type, typename stepper_type>
 void GenericSystem<GenericODE, state_type, stepper_type>::
 SetPosition(state_type& new_position) {
@@ -111,12 +115,15 @@ SetPosition(state_type& new_position) {
   }
   x = new_position; 
 }
+
+
 template<typename GenericODE, typename state_type, typename stepper_type>
 void GenericSystem<GenericODE, state_type, stepper_type>::
 Integrate(double dt, unsigned int number_steps) {
   t = boost::numeric::odeint::integrate_n_steps(stepper, (*ode),
       x, t, dt, number_steps);
 }
+
 
 template <typename GenericODE, typename state_type, typename stepper_type>
 template <typename observer_type>
@@ -126,11 +133,13 @@ Integrate(double dt, unsigned int number_steps, observer_type observer) {
       x, t, dt, number_steps, observer);
 }
 
+
 template <typename GenericODE, typename state_type, typename stepper_type>
 void GenericSystem<GenericODE, state_type, stepper_type>::
 SetParameters(void* parameters) {
   ode = new GenericODE(parameters);
 }
+
 
 template <typename GenericODE, typename state_type, typename stepper_type>
 double GenericSystem<GenericODE, state_type, stepper_type>::
@@ -141,6 +150,8 @@ CalculatePeriod(unsigned int n_average, double dt,
   return CalculatePeriod(n_average, dt, CrossedPoincareManifold, 
       BifurcationZerothOrderCrossingPoincare, n_crossings);
 }
+
+
 // TODO: Check for NULL-Pointer
 // TODO: remove infinte loop
 template <typename GenericODE, typename state_type, typename stepper_type>
@@ -181,6 +192,7 @@ BifurcationZerothOrderCrossingPoincare(const state_type& previous_state,
     double previous_time, const state_type& current_state, double current_time) {
   return (current_time + previous_time)/2.;
 }
+
 
 template <typename GenericODE, typename state_type, typename stepper_type>
 double GenericSystem<GenericODE, state_type, stepper_type>::
