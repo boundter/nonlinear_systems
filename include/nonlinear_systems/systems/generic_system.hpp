@@ -153,12 +153,12 @@ CalculatePeriod(unsigned int n_average, double dt,
       const state_type& /*current_state*/, double /*current_time*/),
     unsigned int n_crossings){
   std::vector<double> times_of_crossing;
-  state_type previous_state = GetPosition();
+  state_type previous_state = CalculateMeanField();
   unsigned int n_observed_crossings = 0;
   // we need one more time of crossing than periods
   while (times_of_crossing.size() < n_average + 1) {
     Integrate(dt, 1);
-    state_type current_state = GetPosition();
+    state_type current_state = CalculateMeanField();
     if (CrossedPoincareManifold(previous_state, current_state)) {
       n_observed_crossings += 1;
       if (n_observed_crossings == n_crossings) {
