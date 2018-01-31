@@ -40,6 +40,18 @@ class TwoHarmonicOscillators {
     }
 };
 
+bool CrossedPositiveYAxis(const state_type& previous_state, 
+    const state_type& current_state) {
+  return (current_state[1] > 0 and 
+      (std::signbit(previous_state[0]) != std::signbit(current_state[0])));
+}
+
+double LinearApprox(const state_type& previous_state, double previous_time,
+    const state_type& current_state, double current_time) {
+  return (previous_state[0]*current_time - current_state[0]*previous_time)
+    /(current_state[0] - previous_state[0]);
+}
+
 
 BOOST_AUTO_TEST_CASE(test_Position) {
   double params[] = {1.};
@@ -131,4 +143,23 @@ BOOST_AUTO_TEST_CASE(test_MeanField){
     BOOST_CHECK_CLOSE_FRACTION(numeric_mean_field[i], analytic_mean_field[i],
         0.01);
   }
+}
+
+BOOST_AUTO_TEST_CASE(test_CalculatePeriod){
+  double params = 1.;
+  GenericSystem<HarmonicOscillator> system = 
+    GenericSystem<HarmonicOscillator>(1, 2, &params);
+  
+  // Integrate the system over 5 periods. For the initial conditions 
+  // x(0) = 0 and y(0)=1 with omega = 1 we have T = 2*pi
+  double dt = 0.01;
+  unsigned int n_average = 5;
+  state_type initial_condition {0., 1.};
+  system.SetPosition(initial_condition);
+  double T = system.CalculatePeriod(n_average, dt, CrossedPositiveYAxis);
+  BOOST_CHECK_CLOSE_FRACTION(T, 2*M_PI, 0.005);
+
+  double linear_T = system.CalculatePeriod(n_average, dt, CrossedPositiveYAxis,
+      LinearApprox);
+  BOOST_CHECK_CLOSE_FRACTION(T, 2*M_PI, 0.005);
 }
