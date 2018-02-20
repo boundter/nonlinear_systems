@@ -139,6 +139,7 @@ namespace nonlinear_systems {
            *  between periods. This is useful for oscillators with higher
            *  winding numbers.
            */
+          template <typename observer_type = boost::numeric::odeint::null_observer>
           double CalculatePeriod(unsigned int n_average, double dt,
               bool (*CrossedPoincareManifold)(
                 const state_type& /*previous_state*/,
@@ -146,13 +147,15 @@ namespace nonlinear_systems {
               double (*ApproximateCrossingPoincareManifold)(
                 const state_type& /*previous_state*/, double /*previous_t*/,
                 const state_type& /*current_state*/, double /*current_t*/),
-              unsigned int n_crossings = 1) {
+              unsigned int n_crossings = 1,
+              observer_type observer = boost::numeric::odeint::null_observer()) {
             std::vector<double> times_of_crossing;
             state_type previous_state = CalculateMeanField();
             unsigned int n_observed_crossings = 0;
             // we need one more time of crossing than periods
             while (times_of_crossing.size() < n_average + 1) {
               Integrate(dt, 1);
+              observer(x, t);
               state_type current_state = CalculateMeanField();
               if (CrossedPoincareManifold(previous_state, current_state)) {
                 n_observed_crossings += 1;
@@ -177,13 +180,15 @@ namespace nonlinear_systems {
            * For a more detailed overview look at the upper function. The time
            * of crossing will be approximated as t_before_crossing + dt/2.
            */
+          template <typename observer_type = boost::numeric::odeint::null_observer>
           double CalculatePeriod(unsigned int n_average, double dt,
               bool (*CrossedPoincareManifold)(
                 const state_type& /*previous_state*/,
                 const state_type& /*current_state*/), 
-              unsigned int n_crossings = 1) {
+              unsigned int n_crossings = 1,
+              observer_type observer = boost::numeric::odeint::null_observer()) {
             return CalculatePeriod(n_average, dt, CrossedPoincareManifold, 
-                BifurcationZerothOrderCrossingPoincare, n_crossings);
+                BifurcationZerothOrderCrossingPoincare, n_crossings, observer);
           }
 
 
