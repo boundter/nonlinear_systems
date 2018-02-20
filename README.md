@@ -16,10 +16,20 @@ Clone the repository:
 ```
 git clone https://github.com/boundter/nonlinear_systems
 ```
-For the installation change into the source directory and do
+For the installation change into the source directory and do:
 ```
 cmake . && make install
 ```
+
+To use the library in a program it has to be gnerated with cmake in the ```CMakeLists.txt``` it can be found like any other package:
+```
+find_package(nonliear_systems REQUIRED)
+```
+It can than be linked to any target:
+```
+target_link_libraries(target nonlinear_systems)
+```
+
 
 #### Testing
 
@@ -40,7 +50,6 @@ The html-doc can then be found in ``` html/index.html ```.
 ## Example
 Say you want to integrate the harmonic oscillator and get the position after some time. Assuming the files were installed it will be
 ```
-
 #include <vector>
 #include <iostream>
 #include <nonlinear_systems/systems/generic_system.hpp>
@@ -48,9 +57,10 @@ Say you want to integrate the harmonic oscillator and get the position after som
 using namespace std;
 using namespace nonlinear_systems;
 
-typedef std::vector<double> state_type;
+typedef vector<double> state_type;
 
-class HarmonicOscillator: {
+// Define the ODE to solve with frequency omega = 1
+class HarmonicOscillator {
   public:
     double omega = 1.;
 
@@ -60,15 +70,23 @@ class HarmonicOscillator: {
       dx[0] = x[1];
       dx[1] = -omega*omega*x[0];
     }
+};
+
+int main() {
+  GenericSystem<HarmonicOscillator> system = GenericSystem<HarmonicOscillator>(1, 2, NULL);
+
+  // Set the initial condition
+  state_type x_0 {1., 0.};
+  system.SetPosition(x_0);
+
+  // Integrate the system with timestep 0.01 for 10000 steps
+  double dt = 0.01;
+  unsigned int n_steps = 10000;
+  system.Integrate(dt, n_steps);
+
+  // Get the position
+  state_type x = system.GetPosition();
+  double t = system.GetTime();
+  cout << "t = " << t << ", x = {" << x[0] << ", " << x[1] << "}" << endl;
 }
-
-GenericSystem<HarmonicOscillator> system = GenericSystem<HarmonicOscillator>(1, 2, NULL);
-
-double dt = 0.01;
-unsigned int n_steps = 10000;
-system.Integrate(dt, n_steps);
-state_type x = system.GetPosition();
-double t = system.GetTime();
-std::cout << "t = " << t << " x = {" << x[0] << ", " << x[1] << "}" << std::endl;
-
 ```
