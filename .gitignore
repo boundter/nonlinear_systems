@@ -3,3 +3,7 @@
 
 # build-directory
 build/*
+
+# doxygen documentation
+docs/*
+!docs/Doxyfile
