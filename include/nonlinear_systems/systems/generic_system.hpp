@@ -102,21 +102,18 @@ namespace nonlinear_systems {
 
           /*!
            * \brief Integrate the system whith an observer.
+           *
+           * The observer is a user-specified struct/class(/function?) that
+           * receives the current time and state. If none is specified the
+           * null_observer will be used which does nothing.
            */ 
-          template <typename observer_type>
+          template <typename observer_type = boost::numeric::odeint::null_observer>
             void Integrate(double dt, unsigned int number_steps, 
-                observer_type observer) {
+                observer_type observer = boost::numeric::odeint::null_observer()) {
               t = boost::numeric::odeint::integrate_n_steps(stepper, (*ode),
                   x, t, dt, number_steps, observer);
             }
 
-
-          /*!
-           *  \brief Integrate the system without an observer.
-           */ 
-          void Integrate(double dt, unsigned int number_steps) {
-            Integrate(dt, number_steps, boost::numeric::odeint::null_observer());
-          }
 
           // TODO: Add an observer
           // TODO: Check for NULL-Pointer
@@ -204,7 +201,7 @@ namespace nonlinear_systems {
           static double BifurcationZerothOrderCrossingPoincare(
               const state_type& previous_state, double previous_t,
               const state_type& current_state, double current_t) {
-            return (current_time + previous_time)/2.;
+            return (previous_t + current_t)/2.;
           }
 
 
