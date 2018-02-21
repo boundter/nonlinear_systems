@@ -152,6 +152,7 @@ namespace nonlinear_systems {
             std::vector<double> times_of_crossing;
             state_type previous_state = CalculateMeanField();
             unsigned int n_observed_crossings = 0;
+            observer(x, t);
             // we need one more time of crossing than periods
             while (times_of_crossing.size() < n_average + 1) {
               Integrate(dt, 1);
