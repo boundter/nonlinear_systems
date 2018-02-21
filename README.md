@@ -45,9 +45,9 @@ target_link_libraries(test_app nonlinear_systems)
 
 #### Testing
 
-The tests are integrated into cmake:
+The tests are integrated into cmake and can be build by setting the variable `NL_BUILD_TESTS` to `ON`:
 ```
-cmake . && make && make test
+cmake -DNL_BUILD_TESTS=ON . && make && make test
 ```
 
 ### Documentation
