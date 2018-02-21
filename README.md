@@ -29,13 +29,25 @@ It can than be linked to any target:
 ```
 target_link_libraries(target nonlinear_systems)
 ```
+When including it like this the ```Boost_INCLUDE_DIRS``` has to be set and included. An example CMakeLists could look like this
+```
+cmake_minimum_required(VERSION 3.0)
+project(TEST_APP CXX)
+
+find_package(nonlinear_systems REQUIRED)
+find_package(Boost)
+include_directories(${Boost_INCLUDE_DIRS})
+
+add_executable(test_app test_app.cpp)
+target_link_libraries(test_app nonlinear_systems)
+```
 
 
 #### Testing
 
 The tests are integrated into cmake:
 ```
-cmake . && make test
+cmake . && make && make test
 ```
 
 ### Documentation
