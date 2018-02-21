@@ -8,14 +8,15 @@
 #include <boost/numeric/odeint/integrate/null_observer.hpp>
 #include <stdexcept>
 
-// TODO: Check inheritance; is virtual necessary here?
-// TODO: Error handling without exception
+// TODO: Which functions need to be virtual?
+// TODO: Use proper error handling
 namespace nonlinear_systems {
   template<typename GenericODE,
     typename state_type = std::vector<double>,
     typename stepper_type = boost::numeric::odeint::runge_kutta4<state_type> >
       class GenericSystem {
         public:
+
           /*!
            *  Initialzer for the GenericSystem class
            *  @param system_size number of elements in the system
@@ -30,19 +31,6 @@ namespace nonlinear_systems {
             x.resize(N*d);
             t = 0.;
             ode = new GenericODE(parameters); 
-          }
-
-
-          // TODO: Change to protected?
-          /*!
-           *  Initializer for the GenericSystem class. No ODE will be
-           *  initialized, it is intended for the use in inherited classes.
-           */
-          GenericSystem(unsigned int system_size, unsigned int dimension) {
-            N = system_size;
-            d = dimension;
-            x.resize(N*d);
-            t = 0.;
           }
 
 
@@ -115,7 +103,6 @@ namespace nonlinear_systems {
             }
 
 
-          // TODO: Add an observer
           // TODO: Check for NULL-Pointer
           // TODO: remove infinte loop
           /*!
@@ -173,7 +160,8 @@ namespace nonlinear_systems {
             return CalculatePeriodFromCrossings(times_of_crossing);
           }
 
-
+          
+          // TODO: Check for NULL-Pointer
           /*!
            *  \brief Calculate the period of the average of all elements in the
            *  state space.
@@ -193,7 +181,23 @@ namespace nonlinear_systems {
           }
 
 
+        protected:
+
+          /*
+           *  Initializer for the GenericSystem class. No ODE will be
+           *  initialized, it is intended for the use in inherited classes.
+           */
+          GenericSystem(unsigned int system_size, unsigned int dimension) {
+            N = system_size;
+            d = dimension;
+            x.resize(N*d);
+            t = 0.;
+          }
+
+
+
         private:
+          
           GenericODE* ode;
           unsigned int N, d;
           state_type x;
