@@ -9,6 +9,7 @@
 #include <stdexcept>
 
 // TODO: Which functions need to be virtual?
+// TODO: Which private members should only be protected?
 // TODO: Use proper error handling
 namespace nonlinear_systems {
   template<typename GenericODE,
@@ -183,8 +184,8 @@ namespace nonlinear_systems {
 
         protected:
 
-          /*
-           *  Initializer for the GenericSystem class. No ODE will be
+          /*!
+           *  \brief Initializer for the GenericSystem class. No ODE will be
            *  initialized, it is intended for the use in inherited classes.
            */
           GenericSystem(unsigned int system_size, unsigned int dimension) {
