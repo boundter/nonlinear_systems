@@ -111,7 +111,10 @@ template<typename GenericODE,
          *  state space.
          *
          *  This function calculates the period of the mean field. For one
-         *  oscillator this is the same as using the position.
+         *  oscillator this is the same as using the position. The period is 
+         *  calculated by measuring the time between crossings of the Poincare
+         *  manifold, a surface in the state space that is crossed transversally
+         *  by the trajectory.
          *
          *  @param CrossedPoincareManifold This is a user-defined funtion. It
          *  recieves the previous state and the current state and should
