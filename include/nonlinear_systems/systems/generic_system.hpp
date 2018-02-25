@@ -11,6 +11,8 @@
 // TODO: Which functions need to be virtual?
 // TODO: Which private members should only be protected?
 // TODO: Use proper error handling
+// TODO: Add method to integrate to specific phase
+// TODO: Add method to measure period over time
 namespace nonlinear_systems {
 template<typename GenericODE,
   typename state_type = std::vector<double>,
