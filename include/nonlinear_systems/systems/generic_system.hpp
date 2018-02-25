@@ -128,7 +128,9 @@ template<typename GenericODE,
          *
          *  @param ApproximateCrossingPoincareManifold This is a user-defined
          *  function. It receives the previous and current time and state from
-         *  this it should approximate the time of crossing.
+         *  this it should approximate the time of crossing. If none is
+         *  specified it will approximate the time by taking the middle between
+         *  the time of the previous and current step.
          */
         template <typename observer_type = boost::numeric::odeint::null_observer>
         double CalculatePeriod(unsigned int n_average, double dt,
