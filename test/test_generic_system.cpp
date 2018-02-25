@@ -204,7 +204,7 @@ BOOST_AUTO_TEST_CASE(test_CalculatePeriod){
   BOOST_CHECK_SMALL(T - 2*M_PI, 0.005);
 
   double linear_T = system.CalculatePeriod(n_average, dt, CrossedPositiveYAxis,
-      LinearApprox);
+      1, LinearApprox);
   BOOST_CHECK_SMALL(T - 2*M_PI, 0.005);
 
   // Multiple crossings for a harmonic oscillator should lead to a
@@ -228,7 +228,7 @@ BOOST_AUTO_TEST_CASE(test_CalculatePeriodObserver){
   system.SetPosition(initial_condition);
   std::vector<state_type> position;
   std::vector<double> times;
-  double T = system.CalculatePeriod(n_average, dt, CrossedPositiveYAxis, 1,
+  double T = system.CalculatePeriod(n_average, dt, CrossedPositiveYAxis, 1, NULL,
       PositionAndTimeObserver(position, times));
   BOOST_CHECK_SMALL(T - 2*M_PI, 0.005);
   for (size_t i = 0; i < times.size(); ++i) {

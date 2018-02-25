@@ -132,10 +132,11 @@ namespace nonlinear_systems {
               bool (*CrossedPoincareManifold)(
                 const state_type& /*previous_state*/,
                 const state_type& /*current_state*/),
+              unsigned int n_crossings = 1,
               double (*ApproximateCrossingPoincareManifold)(
                 const state_type& /*previous_state*/, double /*previous_t*/,
-                const state_type& /*current_state*/, double /*current_t*/),
-              unsigned int n_crossings = 1,
+                const state_type& /*current_state*/, double /*current_t*/)
+              = NULL,
               observer_type observer = boost::numeric::odeint::null_observer()) {
             std::vector<double> times_of_crossing;
             state_type previous_state = CalculateMeanField();
@@ -150,8 +151,17 @@ namespace nonlinear_systems {
                 n_observed_crossings += 1;
                 if (n_observed_crossings == n_crossings) {
                   double current_time = GetTime();
-                  double t_approx = ApproximateCrossingPoincareManifold(previous_state, 
-                      current_time - dt, current_state, current_time);
+                  double t_approx;
+                  if (ApproximateCrossingPoincareManifold == NULL) {
+                    t_approx = BifurcationZerothOrderCrossingPoincare(
+                        previous_state, current_time - dt, current_state,
+                        current_time);
+                  }
+                  else {
+                    t_approx = ApproximateCrossingPoincareManifold(
+                        previous_state, current_time - dt, current_state, 
+                        current_time);
+                  }
                   times_of_crossing.push_back(t_approx);
                   n_observed_crossings = 0;
                 }
@@ -162,26 +172,6 @@ namespace nonlinear_systems {
           }
 
           
-          // TODO: Check for NULL-Pointer
-          /*!
-           *  \brief Calculate the period of the average of all elements in the
-           *  state space.
-           *
-           * For a more detailed overview look at the upper function. The time
-           * of crossing will be approximated as t_before_crossing + dt/2.
-           */
-          template <typename observer_type = boost::numeric::odeint::null_observer>
-          double CalculatePeriod(unsigned int n_average, double dt,
-              bool (*CrossedPoincareManifold)(
-                const state_type& /*previous_state*/,
-                const state_type& /*current_state*/), 
-              unsigned int n_crossings = 1,
-              observer_type observer = boost::numeric::odeint::null_observer()) {
-            return CalculatePeriod(n_average, dt, CrossedPoincareManifold, 
-                BifurcationZerothOrderCrossingPoincare, n_crossings, observer);
-          }
-
-
         protected:
 
           /*!
