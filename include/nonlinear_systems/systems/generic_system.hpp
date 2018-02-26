@@ -9,7 +9,6 @@
 #include <stdexcept>
 
 // TODO: Which functions need to be virtual?
-// TODO: Which private members should only be protected?
 // TODO: Use proper error handling
 // TODO: Add method to integrate to specific phase
 // TODO: Add method to measure period over time
@@ -180,6 +179,11 @@ template<typename GenericODE,
 
         
       protected:
+        GenericODE* ode;
+        unsigned int N, d;
+        state_type x;
+        double t;
+
 
         /*!
          *  \brief Initializer for the GenericSystem class. No ODE will be
@@ -195,11 +199,6 @@ template<typename GenericODE,
 
 
       private:
-        
-        GenericODE* ode;
-        unsigned int N, d;
-        state_type x;
-        double t;
         stepper_type stepper;
 
 
