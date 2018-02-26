@@ -7,12 +7,12 @@
 typedef std::vector<double> state_type;
 
 namespace nonlinear_systems {
-class RayleighMeanField {
+class RayleighMeanFieldODE {
   public:
-    RayleighMeanField(unsigned int N, const state_type& frequency, 
+    RayleighMeanFieldODE(unsigned int N, const state_type& frequency, 
         double nonlinearity, double coupling, 
         const char* coupling_coordinate = "y")
-   :_frequency(frequency), _nonliearity(nonlinearity), _coupling(coupling),
+   :_frequency(frequency), _nonlinearity(nonlinearity), _coupling(coupling),
    _N(N) {
       if (_frequency.size() != _N) {
         throw std::length_error("Length of frequency vector and system size N do not match.");
@@ -35,7 +35,7 @@ class RayleighMeanField {
         dx[2*i] = x[2*i+1];
         dx[2*i+1] = _nonlinearity*(1-x[2*i+1]*x[2*i+1])*x[2*i+1]
           - _frequency[i]*_frequency[i]*x[2*i]
-          + _coupling*(mean_field - y[2*i+_offset]);
+          + _coupling*(mean_field - x[2*i+_offset]);
       }
     }
   
@@ -46,14 +46,14 @@ class RayleighMeanField {
     unsigned int _N;
     int _offset;
 
-     CalculateMeanFieldCoordinate(const state_type& x) {
+     double CalculateMeanFieldCoordinate(const state_type& x) {
       double sum = 0.;
       for (unsigned int i = 0; i < _N; ++i) {
         sum += x[2*i+_offset];
       }
-      return sum/static_cast<double>(N);
+      return sum/static_cast<double>(_N);
     }
-}
+};
 }//nonlinear_systems
 
 #endif
