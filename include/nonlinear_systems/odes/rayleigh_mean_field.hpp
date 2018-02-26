@@ -11,13 +11,12 @@ class RayleighMeanField {
   public:
     RayleighMeanField(unsigned int N, const state_type& frequency, 
         double nonlinearity, double coupling, 
-        const char* coupling_coordinate = "y") {
-      // TODO: Check _frequency.size() == _N;
-      // TODO: Use list-initialization?
-      _N = N;
-      _frequency = frequency;
-      _nonlinearity = nonlinearity;
-      _coupling = coupling;
+        const char* coupling_coordinate = "y")
+   :_frequency(frequency), _nonliearity(nonlinearity), _coupling(coupling),
+   _N(N) {
+      if (_frequency.size() != _N) {
+        throw std::length_error("Length of frequency vector and system size N do not match.");
+      } 
       if (coupling_coordinate == "y") {
         _offset = 1;
       }
