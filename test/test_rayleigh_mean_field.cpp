@@ -21,12 +21,10 @@ BOOST_AUTO_TEST_CASE(test_ODEX_constructor) {
   }
   
   // Test for correct initialization
-  BOOST_CHECK_NO_THROW(RayleighMeanFieldODEX ode = 
-      RayleighMeanFieldODEX(N, frequency, nonlinearity, coupling));
+  BOOST_CHECK_NO_THROW(RayleighMeanFieldODEX(N, frequency, nonlinearity, coupling));
 
   // Test for wrong length of frequency
-  BOOST_CHECK_THROW(RayleighMeanFieldODEX ode = 
-      RayleighMeanFieldODEX(N+1, frequency, nonlinearity, coupling), 
+  BOOST_CHECK_THROW(RayleighMeanFieldODEX(N+1, frequency, nonlinearity, coupling), 
       std::length_error);
 }
 
@@ -42,12 +40,10 @@ BOOST_AUTO_TEST_CASE(test_ODEY_constructor) {
   }
   
   // Test for correct initialization
-  BOOST_CHECK_NO_THROW(RayleighMeanFieldODEY ode = 
-      RayleighMeanFieldODEY(N, frequency, nonlinearity, coupling));
+  BOOST_CHECK_NO_THROW(RayleighMeanFieldODEY(N, frequency, nonlinearity, coupling));
 
   // Test for wrong length of frequency
-  BOOST_CHECK_THROW(RayleighMeanFieldODEY ode = 
-      RayleighMeanFieldODEY(N+1, frequency, nonlinearity, coupling), 
+  BOOST_CHECK_THROW(RayleighMeanFieldODEY(N+1, frequency, nonlinearity, coupling), 
       std::length_error);
 }
 
