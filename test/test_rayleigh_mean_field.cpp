@@ -1,7 +1,6 @@
 #define BOOST_TEST_MODULE RayleighMeanFieldSystem
 #include <boost/test/included/unit_test.hpp>
 #include <nonlinear_systems/odes/rayleigh_mean_field_ode.hpp>
-#include <nonlinear_systems/systems/rayleigh_mean_field_system.hpp>
 #include <stdexcept>
 #include <cmath>
 
@@ -21,12 +20,13 @@ BOOST_AUTO_TEST_CASE(test_ODEX_constructor) {
   }
   
   // Test for correct initialization
-  RayleighMeanFieldODEX ode = RayleighMeanFieldODEX(N, frequency, nonlinearity,
-      coupling);
+  BOOST_CHECK_NO_THROW(RayleighMeanFieldODEX ode = 
+      RayleighMeanFieldODEX(N, frequency, nonlinearity, coupling));
 
   // Test for wrong length of frequency
-  BOOST_CHECK_THROW(ode = RayleighMeanFieldODEX(N+1, frequency, nonlinearity, 
-        coupling), std::length_error);
+  BOOST_CHECK_THROW(RayleighMeanFieldODEX ode = 
+      RayleighMeanFieldODEX(N+1, frequency, nonlinearity, coupling), 
+      std::length_error);
 }
 
 
@@ -41,10 +41,11 @@ BOOST_AUTO_TEST_CASE(test_ODEY_constructor) {
   }
   
   // Test for correct initialization
-  RayleighMeanFieldODEY ode = RayleighMeanFieldODEY(N, frequency, nonlinearity,
-      coupling);
+  BOOST_CHECK_NO_THROW(RayleighMeanFieldODEY ode = 
+      RayleighMeanFieldODEY(N, frequency, nonlinearity, coupling));
 
   // Test for wrong length of frequency
-  BOOST_CHECK_THROW(ode = RayleighMeanFieldODEY(N+1, frequency, nonlinearity, 
-        coupling), std::length_error);
+  BOOST_CHECK_THROW(RayleighMeanFieldODEY ode = 
+      RayleighMeanFieldODEY(N+1, frequency, nonlinearity, coupling), 
+      std::length_error);
 }
