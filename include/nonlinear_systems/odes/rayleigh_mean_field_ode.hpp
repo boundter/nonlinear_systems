@@ -7,8 +7,10 @@
 typedef std::vector<double> state_type;
 
 namespace nonlinear_systems {
-class RayleighMeanFieldODE {
-  public:
+struct RayleighMeanFieldODE {
+    state_type _frequency;
+    double _nonlinearity, _coupling;
+    unsigned int _N;
     RayleighMeanFieldODE(unsigned int N, const state_type& frequency, 
         double nonlinearity, double coupling)
       :_frequency(frequency), _nonlinearity(nonlinearity), _coupling(coupling),
@@ -17,12 +19,6 @@ class RayleighMeanFieldODE {
           throw std::length_error("Length of frequency vector and system size N do not match.");
         } 
     }
-
-
-  protected:
-    state_type _frequency;
-    double _nonlinearity, _coupling;
-    unsigned int _N;
 };
 
 class RayleighMeanFieldODEX: public RayleighMeanFieldODE {
