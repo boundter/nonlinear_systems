@@ -7,16 +7,29 @@
 typedef std::vector<double> state_type;
 
 namespace nonlinear_systems {
-class RayleighMeanFieldODEX {
+class RayleighMeanFieldODE {
   public:
-    RayleighMeanFieldODEX(unsigned int N, const state_type& frequency,
+    RayleighMeanFieldODE(unsigned int N, const state_type& frequency, 
         double nonlinearity, double coupling)
       :_frequency(frequency), _nonlinearity(nonlinearity), _coupling(coupling),
       _N(N) {
         if (_frequency.size() != _N) {
           throw std::length_error("Length of frequency vector and system size N do not match.");
         } 
-      }
+    }
+
+
+  protected:
+    state_type _frequency;
+    double _nonlinearity, _coupling;
+    unsigned int _N;
+};
+
+class RayleighMeanFieldODEX: public RayleighMeanFieldODE {
+  public:
+    RayleighMeanFieldODEX(unsigned int N, const state_type& frequency,
+        double nonlinearity, double coupling)
+      :RayleighMeanFieldODE(N, frequency, nonlinearity, coupling) {}
 
 
     void operator()(const state_type& x, state_type& dx) {
@@ -31,10 +44,6 @@ class RayleighMeanFieldODEX {
 
 
   protected:
-    state_type _frequency;
-    double _nonlinearity, _coupling;
-    unsigned int _N;
-
     double CalculateMeanFieldCoordinateX(const state_type& x) {
       double sum = 0.;
       for (unsigned int i = 0; i < _N; ++i) {
@@ -45,16 +54,11 @@ class RayleighMeanFieldODEX {
 };
 
 
-class RayleighMeanFieldODEY {
+class RayleighMeanFieldODEY: public RayleighMeanFieldODE {
   public:
     RayleighMeanFieldODEY(unsigned int N, const state_type& frequency,
         double nonlinearity, double coupling)
-      :_frequency(frequency), _nonlinearity(nonlinearity), _coupling(coupling),
-      _N(N) {
-        if (_frequency.size() != _N) {
-          throw std::length_error("Length of frequency vector and system size N do not match.");
-        } 
-      }
+      :RayleighMeanFieldODE(N, frequency, nonlinearity, coupling) {}
 
 
     void operator()(const state_type& x, state_type& dx) {
@@ -69,10 +73,6 @@ class RayleighMeanFieldODEY {
 
 
   protected:
-    state_type _frequency;
-    double _nonlinearity, _coupling;
-    unsigned int _N;
-
     double CalculateMeanFieldCoordinateY(const state_type& x) {
       double sum = 0.;
       for (unsigned int i = 0; i < _N; ++i) {
