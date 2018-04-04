@@ -19,6 +19,9 @@ struct RayleighMeanFieldODE {
           throw std::length_error("Length of frequency vector and system size N do not match.");
         } 
     }
+
+    virtual void operator()(const state_type& x, state_type& dx, const double t)
+    {}
 };
 
 class RayleighMeanFieldODEX: public RayleighMeanFieldODE {
@@ -28,7 +31,7 @@ class RayleighMeanFieldODEX: public RayleighMeanFieldODE {
       :RayleighMeanFieldODE(N, frequency, nonlinearity, coupling) {}
 
 
-    void operator()(const state_type& x, state_type& dx) {
+    void operator()(const state_type& x, state_type& dx, const double t) {
       double mean_field = CalculateMeanFieldCoordinateX(x);
       for (unsigned int i = 0; i < _N; ++i) {
         dx[2*i] = x[2*i+1];
@@ -57,7 +60,7 @@ class RayleighMeanFieldODEY: public RayleighMeanFieldODE {
       :RayleighMeanFieldODE(N, frequency, nonlinearity, coupling) {}
 
 
-    void operator()(const state_type& x, state_type& dx) {
+    void operator()(const state_type& x, state_type& dx, const double t) {
       double mean_field = CalculateMeanFieldCoordinateY(x);
       for (unsigned int i = 0; i < _N; ++i) {
         dx[2*i] = x[2*i+1];
