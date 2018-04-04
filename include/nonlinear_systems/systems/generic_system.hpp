@@ -96,6 +96,9 @@ template<typename GenericODE,
          * The observer is a user-specified struct/class(/function?) that
          * receives the current time and state. If none is specified the
          * null_observer will be used which does nothing.
+         *
+         * The pointer to member ode needs to be dereferenced here, this will
+         * always be to the template parameter GenericODE.
          */ 
         template <typename observer_type = boost::numeric::odeint::null_observer>
           void Integrate(double dt, unsigned int number_steps, 
