@@ -54,18 +54,11 @@ BOOST_AUTO_TEST_CASE(test_system_constructor) {
   double coupling = 0.134;
 
   // Test default constructor
-  BOOST_CHECK_NO_THROW(RayleighMeanFieldSystem(N, nonlinearity, coupling));
+  BOOST_CHECK_NO_THROW(RayleighMeanFieldSystem<RayleighMeanFieldODEY>(N, nonlinearity, coupling));
   
   // Test constructor for x-coupling
-  BOOST_CHECK_NO_THROW(RayleighMeanFieldSystem(N, nonlinearity, coupling, "x"));
+  BOOST_CHECK_NO_THROW(RayleighMeanFieldSystem<RayleighMeanFieldODEX>(N, nonlinearity, coupling));
   
-  // Test constructor for y-coupling
-  BOOST_CHECK_NO_THROW(RayleighMeanFieldSystem(N, nonlinearity, coupling, "y"));
-
-  // Test constructor for invalid coupling
-  BOOST_CHECK_THROW(RayleighMeanFieldSystem(N, nonlinearity, coupling, "u"),
-      std::invalid_argument);
-
   // Check initialization of frequency and position from mt19937_64
   unsigned long int seed = 123456789;
   double min_value = -3.;
@@ -82,9 +75,39 @@ BOOST_AUTO_TEST_CASE(test_system_constructor) {
   for (unsigned int i = 0; i < N; ++i) {
     frequency.push_back(normal(rng));
   }
-  RayleighMeanFieldSystem system = RayleighMeanFieldSystem(N, nonlinearity,
-      coupling, "y", seed);
+  RayleighMeanFieldSystem<RayleighMeanFieldODEY> system(N, nonlinearity,
+      coupling, seed);
   BOOST_TEST(system.GetPosition() == position, boost::test_tools::per_element());
   BOOST_TEST(system.GetFrequency() == frequency, boost::test_tools::per_element());
 
+}
+
+struct PositionObserver {
+  std::vector<state_type>& _states;
+  std::vector<double>& _times;
+
+  PositionObserver(std::vector<state_type>& states, std::vector<double>& times)
+    :_states(states), _times(times) {}
+
+  void operator()(const state_type& state, double t) {
+    _states.push_back(state);
+    _times.push_back(t);
+  }
+};
+
+BOOST_AUTO_TEST_CASE(test_system_CalculatePeriod) {
+  unsigned int N = 10;
+  double nonlinearity = 6.;
+  double coupling = 0.134;
+  RayleighMeanFieldSystem<> system(N, nonlinearity,
+      coupling);
+  double dt = 0.01;
+  double N_trans = 50000;
+  double N_int = 10000;
+  std::vector<state_type> states;
+  std::vector<double> times;
+  system.Integrate(dt, N_trans);
+  double T = system.CalculateMeanPeriod(7, dt);
+  double T_exp = 12.856;
+  BOOST_CHECK_CLOSE(T, T_exp, 0.01);
 }
