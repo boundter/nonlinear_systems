@@ -10,21 +10,21 @@
 typedef std::vector<double> state_type;
 
 namespace nonlinear_systems {
+  template <typename ode_type = RayleighMeanFieldODEY>
   class RayleighMeanFieldSystem
-    : public GenericSystem<RayleighMeanFieldODE,std::vector<double>, 
-    boost::numeric::odeint::runge_kutta4<state_type>>  {
+    : public GenericSystem<ode_type, std::vector<double>, 
+    boost::numeric::odeint::runge_kutta4<state_type> >  {
       public:
         RayleighMeanFieldSystem(unsigned int N, double nonlinearity, 
-            double coupling, const char* coupling_coordinate = "y",
-            unsigned long int seed=123456789)
-          :GenericSystem(N, 2){
+            double coupling, unsigned long int seed=123456789)
+          :GenericSystem<ode_type>(N, 2){
             std::mt19937_64 rng(seed);
 
             double min_x = -3., max_x = 3.;
             std::uniform_real_distribution<double> uniform(min_x, max_x);
             std::function<double()> uniform_dist = std::bind(uniform,
                 std::ref(rng));
-            x = SampleDistribution(x.size(), &uniform_dist);
+            this->x = SampleDistribution(this->x.size(), &uniform_dist);
             
             frequency.resize(N);
             double mean_frequency = 1., stdev_frequency = 0.01;
@@ -34,18 +34,7 @@ namespace nonlinear_systems {
                 std::ref(rng));
             frequency = SampleDistribution(frequency.size(), &normal_dist);
             
-            _coupling_coordinate = coupling_coordinate;
-            if(_coupling_coordinate == "x") {
-              ode = new RayleighMeanFieldODEX(N, frequency, nonlinearity, 
-                  coupling);
-            }
-            else if(_coupling_coordinate == "y") {
-              ode = new RayleighMeanFieldODEY(N, frequency, nonlinearity, 
-                  coupling);
-            }
-            else {
-              throw std::invalid_argument("Did not understand coupling_coordinate. Allowed values are 'x'and 'y'.");
-            }
+            this->ode = new ode_type(N, frequency, nonlinearity, coupling);
           }
 
 
@@ -53,8 +42,16 @@ namespace nonlinear_systems {
           return frequency;
         } 
 
+        
+        template <typename observer_type = boost::numeric::odeint::null_observer>
+        double CalculateMeanPeriod(unsigned int n_average, double dt, 
+            observer_type observer = boost::numeric::odeint::null_observer()) {
+          return this->template CalculatePeriod<observer_type>(n_average, dt,
+              this->CrossedPositiveYAxis, 1, this->LinearApproximationCrossing, observer);
+        }
+
+
       protected:
-        const char* _coupling_coordinate;
         state_type frequency;
 
 
@@ -66,8 +63,23 @@ namespace nonlinear_systems {
           }
           return samples;
         }
-    };
 
+      
+        static bool CrossedPositiveYAxis(const state_type& previous_state,
+            const state_type& current_state) {
+          return ((current_state[1] > 0) and
+              (std::signbit(current_state[0]) xor 
+               std::signbit(previous_state[0])));   
+        }
+
+        
+        static double LinearApproximationCrossing(const state_type& previous_state,
+            double previous_t, const state_type& current_state, 
+            double current_t) {
+          return (previous_state[0]*current_t - current_state[0]*previous_t)
+            /(previous_state[0] - current_state[0]);
+        }
+    };
 } // nonlinear_systems
 
 #endif
