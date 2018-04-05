@@ -18,13 +18,10 @@ namespace nonlinear_systems {
         RayleighMeanFieldSystem(unsigned int N, double nonlinearity, 
             double coupling, unsigned long int seed=123456789)
           :GenericSystem<ode_type>(N, 2){
-            std::mt19937_64 rng(seed);
+            rng.seed(seed);
 
             double min_x = -3., max_x = 3.;
-            std::uniform_real_distribution<double> uniform(min_x, max_x);
-            std::function<double()> uniform_dist = std::bind(uniform,
-                std::ref(rng));
-            this->x = SampleDistribution(this->x.size(), &uniform_dist);
+            SetRandomState(min_x, max_x);
             
             frequency.resize(N);
             double mean_frequency = 1., stdev_frequency = 0.01;
@@ -42,6 +39,7 @@ namespace nonlinear_systems {
           return frequency;
         } 
 
+
         void SetFrequency(state_type new_frequency) {
           if (new_frequency.size() != frequency.size()) {
             throw std::length_error("New frequency has the wrong length!");
@@ -49,6 +47,14 @@ namespace nonlinear_systems {
           frequency = new_frequency;
         }
 
+
+        void SetRandomState(double min_x, double max_x) {
+            std::uniform_real_distribution<double> uniform(min_x, max_x);
+            std::function<double()> uniform_dist = std::bind(uniform,
+                std::ref(rng));
+            this->x = SampleDistribution(this->x.size(), &uniform_dist);
+        }
+        
         
         template <typename observer_type = boost::numeric::odeint::null_observer>
         double CalculateMeanPeriod(unsigned int n_average, double dt, 
@@ -60,6 +66,7 @@ namespace nonlinear_systems {
 
       protected:
         state_type frequency;
+        std::mt19937_64 rng;
         
         using GenericSystem<ode_type>::CalculatePeriod;
         using GenericSystem<ode_type>::SetParameters;

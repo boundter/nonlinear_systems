@@ -10,6 +10,8 @@ typedef std::vector<double> state_type;
 
 using namespace nonlinear_systems;
 
+// TODO: Add test for random state
+
 // TODO: Add Tests for the integration
 BOOST_AUTO_TEST_CASE(test_ODEX_constructor) {
   unsigned int N = 10;
