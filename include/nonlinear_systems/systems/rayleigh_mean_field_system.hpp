@@ -42,6 +42,13 @@ namespace nonlinear_systems {
           return frequency;
         } 
 
+        void SetFrequency(state_type new_frequency) {
+          if (new_frequency.size() != frequency.size()) {
+            throw std::length_error("New frequency has the wrong length!");
+          }
+          frequency = new_frequency;
+        }
+
         
         template <typename observer_type = boost::numeric::odeint::null_observer>
         double CalculateMeanPeriod(unsigned int n_average, double dt, 
@@ -53,7 +60,9 @@ namespace nonlinear_systems {
 
       protected:
         state_type frequency;
-
+        
+        using GenericSystem<ode_type>::CalculatePeriod;
+        using GenericSystem<ode_type>::SetParameters;
 
         state_type SampleDistribution(size_t number_samples, 
             std::function<double()>* distribution) {

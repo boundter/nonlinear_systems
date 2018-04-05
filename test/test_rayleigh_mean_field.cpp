@@ -95,6 +95,7 @@ struct PositionObserver {
   }
 };
 
+// TODO: Test with observer
 BOOST_AUTO_TEST_CASE(test_system_CalculatePeriod) {
   unsigned int N = 10;
   double nonlinearity = 6.;
@@ -110,4 +111,20 @@ BOOST_AUTO_TEST_CASE(test_system_CalculatePeriod) {
   double T = system.CalculateMeanPeriod(7, dt);
   double T_exp = 12.856;
   BOOST_CHECK_CLOSE(T, T_exp, 0.01);
+}
+
+// TODO: Check for correct integration
+BOOST_AUTO_TEST_CASE(test_setting_frequency) {
+  unsigned int N = 2;
+  double nonlinearity = 6;
+  double coupling = 0.134;
+  RayleighMeanFieldSystem<> system(N, nonlinearity, coupling);
+
+  state_type frequency_too_long(N+1);
+  state_type frequency_too_short(N-1);
+  state_type frequency_right_length(N);
+
+  BOOST_CHECK_THROW(system.SetFrequency(frequency_too_long), std::length_error);
+  BOOST_CHECK_THROW(system.SetFrequency(frequency_too_short), std::length_error);
+  BOOST_CHECK_NO_THROW(system.SetFrequency(frequency_right_length));
 }
