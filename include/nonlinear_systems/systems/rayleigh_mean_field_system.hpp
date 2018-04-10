@@ -4,11 +4,13 @@
 #include <vector>
 #include <random>
 #include <functional>
+#include <memory>
 #include <nonlinear_systems/odes/rayleigh_mean_field_ode.hpp>
 #include <nonlinear_systems/systems/generic_system.hpp>
 
 typedef std::vector<double> state_type;
 
+// TODO: Smart pointers hit performance pretty hard. Why?
 namespace nonlinear_systems {
   template <typename ode_type = RayleighMeanFieldODEY>
   class RayleighMeanFieldSystem
@@ -31,7 +33,7 @@ namespace nonlinear_systems {
                 std::ref(rng));
             frequency = SampleDistribution(frequency.size(), &normal_dist);
             
-            this->ode = new ode_type(N, frequency, nonlinearity, coupling);
+            this->ode = std::unique_ptr<ode_type>(new ode_type(N, frequency, nonlinearity, coupling));
 
             _nonlinearity = nonlinearity;
             _N = N;
@@ -42,7 +44,7 @@ namespace nonlinear_systems {
           return frequency;
         } 
 
-
+        // TODO: Change pointer
         void SetFrequency(state_type new_frequency) {
           if (new_frequency.size() != frequency.size()) {
             throw std::length_error("New frequency has the wrong length!");

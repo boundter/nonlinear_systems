@@ -2,6 +2,7 @@
 #define __GENERIC_SYSTEM__
 
 #include <vector>
+#include <memory>
 #include <boost/numeric/odeint/stepper/runge_kutta4.hpp>
 #include <boost/numeric/odeint/integrate/check_adapter.hpp>
 #include <boost/numeric/odeint/integrate/integrate_n_steps.hpp>
@@ -32,7 +33,7 @@ template<typename GenericODE,
           d = dimension;
           x.resize(N*d);
           t = 0.;
-          ode = new GenericODE(parameters); 
+          ode = std::unique_ptr<GenericODE>(new GenericODE(parameters)); 
         }
 
 
@@ -68,7 +69,7 @@ template<typename GenericODE,
          *  to the ODE.
          */
         void SetParameters(void* parameters) {
-          ode = new GenericODE(parameters);
+          ode = std::unique_ptr<GenericODE>(new GenericODE(parameters));
         }
 
 
@@ -182,7 +183,7 @@ template<typename GenericODE,
 
         
       protected:
-        GenericODE* ode;
+        std::unique_ptr<GenericODE> ode;
         unsigned int N, d;
         state_type x;
         double t;
