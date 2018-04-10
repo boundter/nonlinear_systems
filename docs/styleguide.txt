@@ -1,0 +1,18 @@
+variable names:
+variable and data members: underscores, exp: file_name, mean_field
+functions, members and classes: CamelCase, exp: TestClass, RayleighModel
+constants: k + CamelCase, exp: kNSteps, kOscillators
+
+spacing:
+indentation: 2 spaces; no indentation after: namespace, template
+vertical spacing: 1 line, where it helps readability, 2 lines between
+  functions, classes and members
+
+comments:
+normal comments: //
+docstrings: /* */
+
+misc:
+list-initialization in new line
+include: std, project, others
+
