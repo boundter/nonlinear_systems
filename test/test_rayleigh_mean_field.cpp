@@ -130,3 +130,19 @@ BOOST_AUTO_TEST_CASE(test_setting_frequency) {
   BOOST_CHECK_THROW(system.SetFrequency(frequency_too_short), std::length_error);
   BOOST_CHECK_NO_THROW(system.SetFrequency(frequency_right_length));
 }
+
+BOOST_AUTO_TEST_CASE(test_setting_splay_state) {
+  unsigned int N = 1000;
+  double nonlinearity = 6;
+  double coupling = 0.134;
+  RayleighMeanFieldSystem<> system(N, nonlinearity, coupling);
+
+  system.SetSplayState();
+  
+  // The limit cycle of the Rayleigh oscillator is point symetric to the origin,
+  // so the mean field will vanish for this state
+  state_type mean_field = system.CalculateMeanField();
+  double order_parameter = sqrt(mean_field[0]*mean_field[0] 
+                                + mean_field[1]*mean_field[1]);
+  BOOST_CHECK_SMALL(order_parameter, 0.01);
+}

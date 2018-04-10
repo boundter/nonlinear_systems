@@ -32,6 +32,9 @@ namespace nonlinear_systems {
             frequency = SampleDistribution(frequency.size(), &normal_dist);
             
             this->ode = new ode_type(N, frequency, nonlinearity, coupling);
+
+            _nonlinearity = nonlinearity;
+            _N = N;
           }
 
 
@@ -54,6 +57,21 @@ namespace nonlinear_systems {
                 std::ref(rng));
             this->x = SampleDistribution(this->x.size(), &uniform_dist);
         }
+
+
+        void SetSplayState() {
+          RayleighMeanFieldSystem<> one_oscillator(1, _nonlinearity, 0.);
+          const double kDT = 1e-2;
+          const unsigned int kNTransient = 1e6;
+          one_oscillator.Integrate(kDT, kNTransient);
+          double T = one_oscillator.CalculateMeanPeriod(5, kDT);
+          for (unsigned int i = 0; i < _N; ++i) {
+            one_oscillator.Integrate(T/static_cast<double>(_N+1), 1);
+            state_type position = one_oscillator.GetPosition();
+            this->x[2*i] = position[0];
+            this->x[2*i+1] = position[1];
+          }
+        }
         
         
         template <typename observer_type = boost::numeric::odeint::null_observer>
@@ -67,6 +85,8 @@ namespace nonlinear_systems {
       protected:
         state_type frequency;
         std::mt19937_64 rng;
+        double _nonlinearity;
+        unsigned int _N;
         
         using GenericSystem<ode_type>::CalculatePeriod;
         using GenericSystem<ode_type>::SetParameters;
