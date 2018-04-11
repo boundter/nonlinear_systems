@@ -1,15 +1,29 @@
 #ifndef __AVERAGE_FREQUENCY_OBSERVER__
 #define __AVERAGE_FREQUENCY_OBSERVER__
 
+#include <cmath> // copysign, atan2, fabs
 #include <vector>
-#include <cmath>
 
 namespace nonlinear_systems {
+
+/*!
+ * This observer measures the average frequency of phase oscillators. It
+ * calculates this for all oscillators using numerical differentiation.
+ */
 template <typename state_type = std::vector<double> >
 class AverageFrequencyPhaseObserver {
   public:
     std::vector<double>& _average_frequency;
 
+    
+    /*!
+     * @param one_step_before the phases one timestep before the integration
+     * @param two_steps_before the phases two timesteps before the integration
+     * @param dt the timestep of the integration
+     * @param average_frequency a vector of the length of the phases in which
+     * the frequencies will be saved
+     */
+    // TODO: Check length
     AverageFrequencyPhaseObserver(const state_type& one_step_before,
         const state_type& two_steps_before, double dt,
         std::vector<double>& average_frequency)
@@ -21,8 +35,14 @@ class AverageFrequencyPhaseObserver {
       }
 
 
-    // TODO: Check length
     // TODO: Refactor moving average
+    // TODO: Refactor numerical differentiation
+    // the differentiation uses the middlepoint method; the numerical derivative
+    // x' at the timepoint n with timestep dt is:
+    // x'[n] = (x[n+1] - x[n-1])/(2*dt)
+    // the phases are temporarily unwrapped at the crossing from -pi to pi or pi
+    // to -pi by subtracting/adding 2pi depending on the state before the
+    // crossing
     void operator()(const state_type& x, double t) {
       for (size_t i = 0; i < _average_frequency.size(); ++i) {
         double phase_difference = x[i] - _two_steps_before[i];
@@ -48,9 +68,22 @@ class AverageFrequencyPhaseObserver {
 };
 
 
+/*!
+ *  This observer measures the average frequency of a limit cycle. For now it
+ *  only works in two dimensions for states of the form [x1, y1, x2, y2, ...]
+ *  and so on. The phase used is the normal polar coordinate atan2(y,x)
+ */
 template <typename state_type = std::vector<double> >
 class AverageFrequencyObserver {
   public:
+
+    /*!
+     * @param one_step_before the phases one timestep before the integration
+     * @param two_steps_before the phases two timesteps before the integration
+     * @param dt the timestep of the integration
+     * @param average_frequency a vector of the length of the phases in which
+     * the frequencies will be saved
+     */
     // TODO: Let user choose the coordinates to use
     AverageFrequencyObserver(const state_type& one_step_before,
         const state_type& two_steps_before, double dt,
@@ -62,13 +95,16 @@ class AverageFrequencyObserver {
               phases_one_before, phases_two_before, dt, average_frequency);
       }
 
+
     void operator()(const state_type& x, double t) {
       std::vector<double> phases = CalculatePhases(x);
       _phase_observer->operator()(phases, t);
     }
 
+
   protected:
     AverageFrequencyPhaseObserver<std::vector<double> >* _phase_observer;
+
 
     std::vector<double> CalculatePhases(const state_type& state) {
       std::vector<double> phases(state.size()/2);
