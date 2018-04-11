@@ -40,7 +40,9 @@ struct RayleighMeanFieldODE {
 
 /*!
  *  This ODE described a system of Rayleigh oscillators coupled to a mean field
- *  in the y-direction.
+ *  in the y-direction. The ODE is 
+ *
+ *  x'' - nonlinearity*(1-x'^2)*x' + frequency^2*x = coupling*(X - x)
  */
 class RayleighMeanFieldODEX: public RayleighMeanFieldODE {
   public:
@@ -81,7 +83,9 @@ class RayleighMeanFieldODEX: public RayleighMeanFieldODE {
 
 /*!
  *  This ODE described a system of Rayleigh oscillators coupled to a mean field
- *  in the x-direction.
+ *  in the x-direction. The ODE is 
+ *
+ *  x'' - nonlinearity*(1-x'^2)*x' + frequency^2*x = coupling*(X' - x')
  */
 class RayleighMeanFieldODEY: public RayleighMeanFieldODE {
   public:
