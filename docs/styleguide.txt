@@ -1,5 +1,6 @@
 variable names:
 variable and data members: underscores, exp: file_name, mean_field
+data members: prependend with _, exp: _t, _x
 functions, members and classes: CamelCase, exp: TestClass, RayleighModel
 constants: k + CamelCase, exp: kNSteps, kOscillators
 

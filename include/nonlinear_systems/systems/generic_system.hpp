@@ -29,11 +29,11 @@ template<typename GenericODE,
          */
         GenericSystem(unsigned int system_size, unsigned int dimension,
             void* parameters) {
-          N = system_size;
-          d = dimension;
-          x.resize(N*d);
-          t = 0.;
-          ode = std::unique_ptr<GenericODE>(new GenericODE(parameters)); 
+          _N = system_size;
+          _d = dimension;
+          _x.resize(_N*_d);
+          _t = 0.;
+          _ode = std::unique_ptr<GenericODE>(new GenericODE(parameters)); 
         }
 
 
@@ -41,7 +41,7 @@ template<typename GenericODE,
          *  \brief Return the position in the state space for all elements.
          */
         state_type GetPosition() {
-          return x;
+          return _x;
         }
 
 
@@ -49,10 +49,10 @@ template<typename GenericODE,
          *  \brief Set the position in the state space.
          */
         void SetPosition(state_type& new_position) {
-          if (new_position.size() != N*d) {
+          if (new_position.size() != _N*_d) {
             throw std::length_error("Trying to set new position of wrong length!");
           }
-          x = new_position;
+          _x = new_position;
         }
 
 
@@ -60,7 +60,7 @@ template<typename GenericODE,
          *  \brief Get the time of the system.
          */
         double GetTime() {
-          return t;
+          return _t;
         }
 
 
@@ -69,7 +69,7 @@ template<typename GenericODE,
          *  to the ODE.
          */
         void SetParameters(void* parameters) {
-          ode = std::unique_ptr<GenericODE>(new GenericODE(parameters));
+          _ode = std::unique_ptr<GenericODE>(new GenericODE(parameters));
         }
 
 
@@ -78,14 +78,14 @@ template<typename GenericODE,
          *  space.
          */
         state_type CalculateMeanField() {
-          state_type mean_field(d); 
-          for (unsigned int i = 0; i < N; ++i) {
-            for (unsigned int j = 0; j < d; ++j) {
-              mean_field[j] += x[d*i+j];
+          state_type mean_field(_d); 
+          for (unsigned int i = 0; i < _N; ++i) {
+            for (unsigned int j = 0; j < _d; ++j) {
+              mean_field[j] += _x[_d*i+j];
             }
           }
-          for (unsigned int i = 0; i < d; ++i) {
-            mean_field[i] /= static_cast<double>(N);
+          for (unsigned int i = 0; i < _d; ++i) {
+            mean_field[i] /= static_cast<double>(_N);
           }
           return mean_field;
         }
@@ -104,8 +104,8 @@ template<typename GenericODE,
         template <typename observer_type = boost::numeric::odeint::null_observer>
           void Integrate(double dt, unsigned int number_steps, 
               observer_type observer = boost::numeric::odeint::null_observer()) {
-            t = boost::numeric::odeint::integrate_n_steps(stepper, (*ode),
-                x, t, dt, number_steps, observer);
+            _t = boost::numeric::odeint::integrate_n_steps(_stepper, (*_ode),
+                _x, _t, dt, number_steps, observer);
           }
 
 
@@ -151,11 +151,11 @@ template<typename GenericODE,
           std::vector<double> times_of_crossing;
           state_type previous_state = CalculateMeanField();
           unsigned int n_observed_crossings = 0;
-          observer(x, t);
+          observer(_x, _t);
           // we need one more time of crossing than periods
           while (times_of_crossing.size() < n_average + 1) {
             Integrate(dt, 1);
-            observer(x, t);
+            observer(_x, _t);
             state_type current_state = CalculateMeanField();
             if (CrossedPoincareManifold(previous_state, current_state)) {
               n_observed_crossings += 1;
@@ -183,10 +183,10 @@ template<typename GenericODE,
 
         
       protected:
-        std::unique_ptr<GenericODE> ode;
-        unsigned int N, d;
-        state_type x;
-        double t;
+        std::unique_ptr<GenericODE> _ode;
+        unsigned int _N, _d;
+        state_type _x;
+        double _t;
 
 
         /*!
@@ -194,16 +194,16 @@ template<typename GenericODE,
          *  initialized, it is intended for the use in inherited classes.
          */
         GenericSystem(unsigned int system_size, unsigned int dimension) {
-          N = system_size;
-          d = dimension;
-          x.resize(N*d);
-          t = 0.;
+          _N = system_size;
+          _d = dimension;
+          _x.resize(_N*_d);
+          _t = 0.;
         }
 
 
 
       private:
-        stepper_type stepper;
+        stepper_type _stepper;
 
 
         /*

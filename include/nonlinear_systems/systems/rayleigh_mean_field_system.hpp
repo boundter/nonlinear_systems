@@ -10,7 +10,6 @@
 
 typedef std::vector<double> state_type;
 
-// TODO: Smart pointers hit performance pretty hard. Why?
 namespace nonlinear_systems {
   template <typename ode_type = RayleighMeanFieldODEY>
   class RayleighMeanFieldSystem
@@ -20,44 +19,45 @@ namespace nonlinear_systems {
         RayleighMeanFieldSystem(unsigned int N, double nonlinearity, 
             double coupling, unsigned long int seed=123456789)
           :GenericSystem<ode_type>(N, 2){
-            rng.seed(seed);
+            _rng.seed(seed);
+            _nonlinearity = nonlinearity;
+            _N = N;
 
             double min_x = -3., max_x = 3.;
             SetRandomState(min_x, max_x);
             
-            frequency.resize(N);
+            _frequency.resize(_N);
             double mean_frequency = 1., stdev_frequency = 0.01;
             std::normal_distribution<double> normal(mean_frequency, 
                 stdev_frequency);
             std::function<double()> normal_dist = std::bind(normal,
-                std::ref(rng));
-            frequency = SampleDistribution(frequency.size(), &normal_dist);
+                std::ref(_rng));
+            _frequency = SampleDistribution(_frequency.size(), &normal_dist);
             
-            this->ode = std::unique_ptr<ode_type>(new ode_type(N, frequency, nonlinearity, coupling));
+            this->_ode = std::unique_ptr<ode_type>(new ode_type(_N, _frequency, 
+                  _nonlinearity, coupling));
 
-            _nonlinearity = nonlinearity;
-            _N = N;
           }
 
 
         state_type GetFrequency() {
-          return frequency;
+          return _frequency;
         } 
 
         // TODO: Change pointer
         void SetFrequency(state_type new_frequency) {
-          if (new_frequency.size() != frequency.size()) {
+          if (new_frequency.size() != _frequency.size()) {
             throw std::length_error("New frequency has the wrong length!");
           }
-          frequency = new_frequency;
+          _frequency = new_frequency;
         }
 
 
         void SetRandomState(double min_x, double max_x) {
             std::uniform_real_distribution<double> uniform(min_x, max_x);
             std::function<double()> uniform_dist = std::bind(uniform,
-                std::ref(rng));
-            this->x = SampleDistribution(this->x.size(), &uniform_dist);
+                std::ref(_rng));
+            this->_x = SampleDistribution(this->_x.size(), &uniform_dist);
         }
 
 
@@ -70,8 +70,8 @@ namespace nonlinear_systems {
           for (unsigned int i = 0; i < _N; ++i) {
             one_oscillator.Integrate(T/static_cast<double>(_N+1), 1);
             state_type position = one_oscillator.GetPosition();
-            this->x[2*i] = position[0];
-            this->x[2*i+1] = position[1];
+            this->_x[2*i] = position[0];
+            this->_x[2*i+1] = position[1];
           }
         }
         
@@ -80,13 +80,14 @@ namespace nonlinear_systems {
         double CalculateMeanPeriod(unsigned int n_average, double dt, 
             observer_type observer = boost::numeric::odeint::null_observer()) {
           return this->template CalculatePeriod<observer_type>(n_average, dt,
-              this->CrossedPositiveYAxis, 1, this->LinearApproximationCrossing, observer);
+              this->CrossedPositiveYAxis, 1, this->LinearApproximationCrossing, 
+              observer);
         }
 
 
       protected:
-        state_type frequency;
-        std::mt19937_64 rng;
+        state_type _frequency;
+        std::mt19937_64 _rng;
         double _nonlinearity;
         unsigned int _N;
         
