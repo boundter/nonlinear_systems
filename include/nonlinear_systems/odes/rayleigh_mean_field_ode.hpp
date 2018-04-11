@@ -2,15 +2,27 @@
 #define __RAYLEIGH_MEAN_FIELD__
 
 #include <vector>
-#include <stdexcept>
+#include <stdexcept> // std::length_error
 
 typedef std::vector<double> state_type;
 
 namespace nonlinear_systems {
+/*!
+ * This ODE describes a system Rayleigh oscillators coupled to a mean field. The
+ * coupling is the same for all oscillators. *This is not an ODE, but just a
+ * template for difference ways to couple to the mean field!*
+ */
 struct RayleighMeanFieldODE {
     state_type _frequency;
     double _nonlinearity, _coupling;
     unsigned int _N;
+
+    /*!
+     *  @param N number of oscillators
+     *  @param frequency frequencies for all the oscillators
+     *  @param nonlinearity nonlinearity parameter for the system
+     *  @param coupling coupling constant of the system
+     */
     RayleighMeanFieldODE(unsigned int N, const state_type& frequency, 
         double nonlinearity, double coupling)
       :_frequency(frequency), _nonlinearity(nonlinearity), _coupling(coupling),
@@ -20,12 +32,25 @@ struct RayleighMeanFieldODE {
         } 
     }
 
+
     virtual void operator()(const state_type& x, state_type& dx, const double t)
     {}
 };
 
+
+/*!
+ *  This ODE described a system of Rayleigh oscillators coupled to a mean field
+ *  in the y-direction.
+ */
 class RayleighMeanFieldODEX: public RayleighMeanFieldODE {
   public:
+    
+    /*!
+     *  @param N number of oscillators
+     *  @param frequency frequencies for all the oscillators
+     *  @param nonlinearity nonlinearity parameter for the system
+     *  @param coupling coupling constant of the system
+     */
     RayleighMeanFieldODEX(unsigned int N, const state_type& frequency,
         double nonlinearity, double coupling)
       :RayleighMeanFieldODE(N, frequency, nonlinearity, coupling) {}
@@ -43,6 +68,7 @@ class RayleighMeanFieldODEX: public RayleighMeanFieldODE {
 
 
   protected:
+  
     double CalculateMeanFieldCoordinateX(const state_type& x) {
       double sum = 0.;
       for (unsigned int i = 0; i < _N; ++i) {
@@ -53,8 +79,19 @@ class RayleighMeanFieldODEX: public RayleighMeanFieldODE {
 };
 
 
+/*!
+ *  This ODE described a system of Rayleigh oscillators coupled to a mean field
+ *  in the x-direction.
+ */
 class RayleighMeanFieldODEY: public RayleighMeanFieldODE {
   public:
+    
+    /*!
+     *  @param N number of oscillators
+     *  @param frequency frequencies for all the oscillators
+     *  @param nonlinearity nonlinearity parameter for the system
+     *  @param coupling coupling constant of the system
+     */
     RayleighMeanFieldODEY(unsigned int N, const state_type& frequency,
         double nonlinearity, double coupling)
       :RayleighMeanFieldODE(N, frequency, nonlinearity, coupling) {}
@@ -72,6 +109,7 @@ class RayleighMeanFieldODEY: public RayleighMeanFieldODE {
 
 
   protected:
+
     double CalculateMeanFieldCoordinateY(const state_type& x) {
       double sum = 0.;
       for (unsigned int i = 0; i < _N; ++i) {
