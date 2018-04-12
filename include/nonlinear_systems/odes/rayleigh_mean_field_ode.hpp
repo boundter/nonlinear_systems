@@ -1,5 +1,5 @@
-#ifndef __RAYLEIGH_MEAN_FIELD__
-#define __RAYLEIGH_MEAN_FIELD__
+#ifndef __RAYLEIGH_MEAN_FIELD_ODE__
+#define __RAYLEIGH_MEAN_FIELD_ODE__
 
 #include <vector>
 #include <stdexcept> // std::length_error
