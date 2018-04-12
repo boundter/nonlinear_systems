@@ -22,7 +22,8 @@ class GenericNetwork: protected GenericSystem<ode_type,
     
     GenericNetwork(node_size_type node_sizes, unsigned int dimension,
         void* parameters)
-      : GenericSystem<ode_type, state_type, stepper_type>(0, dimension) {
+      : GenericSystem<ode_type, state_type, stepper_type>(0, dimension, 
+          parameters) {
         _node_indices = CalculateNodeIndices(node_sizes);
         this->Resize(_node_indices.back());
     }
@@ -34,7 +35,7 @@ class GenericNetwork: protected GenericSystem<ode_type,
  
 
     state_type GetState() {
-      return this->_x;
+      return GenericSystem<ode_type, state_type, stepper_type>::GetPosition();
     }
 
 
@@ -54,6 +55,15 @@ class GenericNetwork: protected GenericSystem<ode_type,
       return _node_indices;
     }
 
+
+    double GetTime() {
+      GenericSystem<ode_type, state_type, stepper_type>::GetTime();  
+    }
+
+
+    double SetParameters(void* parameters) {
+      GenericSystem<ode_type, state_type, stepper_type>::SetParameters(parameters);
+    }
 
   protected:
     node_size_type _node_indices;

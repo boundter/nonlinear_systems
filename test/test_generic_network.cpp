@@ -23,7 +23,8 @@ class HarmonicOscillator {
 
 BOOST_AUTO_TEST_CASE(test_conversion_state_matrix) {
   std::vector<unsigned int> node_sizes = {3, 2};
-  GenericNetwork<HarmonicOscillator, int> network(node_sizes, 1, NULL);
+  double params = 1.;
+  GenericNetwork<HarmonicOscillator, int> network(node_sizes, 1, &params);
 
   // set a new state
   std::vector<int> x = {1, 2, 3, 4, 5};
@@ -44,4 +45,12 @@ BOOST_AUTO_TEST_CASE(test_conversion_state_matrix) {
   BOOST_TEST(x[2] == nodes[0][2]);
   BOOST_TEST(x[3] == nodes[1][0]);
   BOOST_TEST(x[4] == nodes[1][1]);
+}
+
+BOOST_AUTO_TEST_CASE(test_time) {
+  std::vector<unsigned int> node_sizes = {3, 2};
+  double params = 1.;
+  GenericNetwork<HarmonicOscillator, int> network(node_sizes, 1, &params);
+
+  BOOST_CHECK_SMALL(network.GetTime(), 0.01);
 }
