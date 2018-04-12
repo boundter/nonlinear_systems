@@ -1,4 +1,5 @@
 #define BOOST_TEST_MODULE GenericNetwork
+#include <cmath>
 #include <boost/test/included/unit_test.hpp>
 #include <nonlinear_systems/systems/generic_network.hpp>
 
@@ -20,6 +21,24 @@ class HarmonicOscillator {
       dx[1] = -omega*omega*x[0]; 
     }
 };
+
+
+class TwoHarmonicOscillators {
+  public:
+    double omega;
+
+    TwoHarmonicOscillators(void* params) {
+      omega = reinterpret_cast<double*>(params)[0];
+    }
+
+    void operator()(const state_type& x, state_type& dx, const double t) {
+      dx[0] = x[1];
+      dx[1] = -omega*omega*x[0]; 
+      dx[2] = x[3];
+      dx[3] = -2*omega*2*omega*x[2]; 
+    }
+};
+
 
 BOOST_AUTO_TEST_CASE(test_conversion_state_matrix) {
   std::vector<unsigned int> node_sizes = {3, 2};
@@ -47,10 +66,44 @@ BOOST_AUTO_TEST_CASE(test_conversion_state_matrix) {
   BOOST_TEST(x[4] == nodes[1][1]);
 }
 
+
 BOOST_AUTO_TEST_CASE(test_time) {
   std::vector<unsigned int> node_sizes = {3, 2};
   double params = 1.;
   GenericNetwork<HarmonicOscillator, int> network(node_sizes, 1, &params);
 
   BOOST_CHECK_SMALL(network.GetTime(), 0.01);
+}
+
+
+// TODO: Maybe also test with observer?
+BOOST_AUTO_TEST_CASE(test_integrate) {
+  std::vector<unsigned int> node_sizes = {1, 1};
+  double params = 1.;
+  GenericNetwork<TwoHarmonicOscillators> network(node_sizes, 2, &params);
+  
+  double dt = 0.01;
+  unsigned int steps_increase = 100;
+  state_type x = {0., 1., 0., 1.};
+  network.SetState(x);
+
+  // Integrate increases time correctly
+  double t0 = network.GetTime();
+  network.Integrate(dt, steps_increase);
+  BOOST_CHECK_CLOSE(t0, network.GetTime(), 0.01);
+
+  // Integrate changes the state correctly
+  // the analytic solution for the harmonic oscillator is 
+  // x(t)=A*sin(omega*t+phi)
+  // for x(0) = 0 and x'(0) = 1 the analytic solution is:
+  // x(t) = 1/omega*sin(omega*t)
+  double sin_1 = sin(dt*steps_increase);
+  double cos_1 = cos(dt*steps_increase);
+  double sin_2 = sin(2*dt*steps_increase);
+  double cos_2 = cos(2*dt*steps_increase);
+  state_type final_state = {sin_1, cos_1, 1/2.*sin_2, cos_2};
+  state_type state = network.GetState();
+  for (size_t i = 0; i < final_state.size(); ++i) {
+    BOOST_CHECK_CLOSE(final_state[i], state[i], 0.01);
+  }
 }

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <boost/numeric/odeint/stepper/runge_kutta4.hpp>
+#include <boost/numeric/odeint/integrate/null_observer.hpp>
 #include <nonlinear_systems/systems/generic_system.hpp>
 
 #include <iostream>
@@ -63,6 +64,14 @@ class GenericNetwork: protected GenericSystem<ode_type,
 
     double SetParameters(void* parameters) {
       GenericSystem<ode_type, state_type, stepper_type>::SetParameters(parameters);
+    }
+
+
+    template<typename observer_type = boost::numeric::odeint::null_observer>
+    void Integrate(double dt, unsigned int number_steps, 
+        observer_type observer = observer_type()) {
+      GenericSystem<ode_type, state_type, stepper_type>::template
+        Integrate<observer_type>(dt, number_steps, observer);
     }
 
   protected:
