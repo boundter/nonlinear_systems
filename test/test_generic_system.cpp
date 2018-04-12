@@ -88,6 +88,27 @@ BOOST_AUTO_TEST_CASE(test_Position) {
 }
 
 
+BOOST_AUTO_TEST_CASE(test_resize) {
+  double params[] = {1.};
+  GenericSystem<HarmonicOscillator> system(1, 2, params);
+
+  system.Resize(2);
+
+  // check if state has correct size
+  BOOST_TEST(system.GetPosition().size() == 4);
+
+  // check if new state can be set
+  state_type new_state {0., 0., 1., 1.};
+  BOOST_CHECK_NO_THROW(system.SetPosition(new_state));
+
+  // check false lengths
+  state_type too_short {0., 0., 1.};
+  state_type too_long {0., 0., 1., 1., 2.};
+  BOOST_CHECK_THROW(system.SetPosition(too_short), std::length_error);
+  BOOST_CHECK_THROW(system.SetPosition(too_long), std::length_error);
+}
+
+
 BOOST_AUTO_TEST_CASE(test_Integrate){
   double params = 1.;
   GenericSystem<HarmonicOscillator> system = 

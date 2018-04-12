@@ -48,11 +48,20 @@ class GenericSystem {
     /*!
      *  \brief Set the position in the state space.
      */
-    void SetPosition(state_type& new_position) {
+    void SetPosition(const state_type& new_position) {
       if (new_position.size() != _N*_d) {
         throw std::length_error("Trying to set new position of wrong length!");
       }
       _x = new_position;
+    }
+
+    
+    /*!
+     * \brief Change the number of oscillators.
+     */
+    void Resize(unsigned int N) {
+      _N = N;
+      _x.resize(_N*_d);
     }
 
 
