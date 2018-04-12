@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-// TODO: How to allwo different types in vector?
+// TODO: where should be virtual?
 
 namespace nonlinear_systems {
 template<typename ode_type, typename precision_type = double, 
@@ -19,7 +19,7 @@ class GenericNetwork: protected GenericSystem<ode_type,
   public:
   typedef std::vector<precision_type> state_type;
   typedef std::vector<unsigned int> node_size_type;
-  typedef std::vector<std::vector<precision_type> > matrix_type;
+  typedef std::vector<state_type> matrix_type;
     
     GenericNetwork(node_size_type node_sizes, unsigned int dimension,
         void* parameters)
@@ -72,6 +72,23 @@ class GenericNetwork: protected GenericSystem<ode_type,
         observer_type observer = observer_type()) {
       GenericSystem<ode_type, state_type, stepper_type>::template
         Integrate<observer_type>(dt, number_steps, observer);
+    }
+
+
+    matrix_type CalculateMeanField() {
+      matrix_type mean_field;
+      for (size_t i = 0; i < _node_indices.size() - 1; ++i) {
+        mean_field.push_back(state_type(this->_d));
+        unsigned int number_oscillators = _node_indices[i+1] - _node_indices[i];
+        for (unsigned int k = 0; k < this->_d; ++k) {
+          for (unsigned int j = this->_d*_node_indices[i] + k; 
+              j < this->_d*_node_indices[i+1]; j += this->_d) {
+            mean_field.back()[k] += this->_x[j];
+          }
+          mean_field.back()[k] /= static_cast<double>(number_oscillators);
+        }
+      }
+      return mean_field;
     }
 
   protected:

@@ -107,3 +107,21 @@ BOOST_AUTO_TEST_CASE(test_integrate) {
     BOOST_CHECK_CLOSE(final_state[i], state[i], 0.01);
   }
 }
+
+
+BOOST_AUTO_TEST_CASE(test_mean_field) {
+  std::vector<unsigned int> node_sizes = {3, 2};
+  double params = 1;
+  GenericNetwork<HarmonicOscillator> network(node_sizes, 2, &params);
+
+  state_type state = {1., 3., 2., 4., 3., 5., 1., 3., 2., 4.};
+  state_type mean_field_1 = {2., 4.};
+  state_type mean_field_2 = {1.5, 3.5};
+  network.SetState(state);
+  network_type mean_field = network.CalculateMeanField();
+  
+  BOOST_CHECK_CLOSE(mean_field[0][0], mean_field_1[0], 0.01);
+  BOOST_CHECK_CLOSE(mean_field[0][1], mean_field_1[1], 0.01);
+  BOOST_CHECK_CLOSE(mean_field[1][0], mean_field_2[0], 0.01);
+  BOOST_CHECK_CLOSE(mean_field[1][1], mean_field_2[1], 0.01);
+}
