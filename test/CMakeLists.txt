@@ -3,7 +3,8 @@ if(NL_BUILD_TESTS)
   set(sources 
     test_generic_system.cpp 
     test_rayleigh_mean_field.cpp
-    test_observers.cpp)
+    test_observers.cpp
+    test_generic_network.cpp)
   
   
   foreach (sourcefile ${sources})
