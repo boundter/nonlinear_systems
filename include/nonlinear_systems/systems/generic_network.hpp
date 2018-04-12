@@ -11,6 +11,13 @@
 // TODO: where should be virtual?
 
 namespace nonlinear_systems {
+/*!
+ *  This class is a wrapper for the GenericSystem for the use with a network.
+ *  A network consists of linked nodes, where each node can consists of
+ *  multiple oscillators. There is no limitation as to the type of oscillator,
+ *  it can be a phase oscillator or a general limit cycle one. For now it is
+ *  limited to a use of oscillators of the same dimensionality.
+ */
 template<typename ode_type, typename precision_type = double, 
   typename stepper_type = 
     boost::numeric::odeint::runge_kutta4<std::vector<precision_type> > >
@@ -21,6 +28,13 @@ class GenericNetwork: protected GenericSystem<ode_type,
   typedef std::vector<unsigned int> node_size_type;
   typedef std::vector<state_type> matrix_type;
     
+    /*!
+     * The network is initialized to a zero state.
+     *
+     * @param node_sizes a vector containing the size of every single node
+     * @param dimension the dimensionality of the oscillators
+     * @param parameters pointer to parameters for the ODE
+     */
     GenericNetwork(node_size_type node_sizes, unsigned int dimension,
         void* parameters)
       : GenericSystem<ode_type, state_type, stepper_type>(0, dimension, 
@@ -30,16 +44,28 @@ class GenericNetwork: protected GenericSystem<ode_type,
     }
 
 
+    /*!
+     * Sets the state of the system using a flattened representation of the form
+     * state = {node_1x_1, node_1x_2, ..., node_2x_1, ....}.
+     */
     void SetState(const state_type& new_state) {
       this->SetPosition(new_state);
     }
  
 
+    /*!
+     * Gets the state in a flattened representation of the from 
+     * state = {node_1x_1, node_1x_2, ..., node_2x_1, ....}.
+     */
     state_type GetState() {
       return GenericSystem<ode_type, state_type, stepper_type>::GetPosition();
     }
 
 
+    /*!
+     *  Gets the state as avector of vector representation
+     *  state = {{node_1x_1, node_1x_2, ....}, {node_2x_1, ...}, ...}.
+     */
     matrix_type GetNodes() {
       matrix_type nodes;
       for (size_t i = 0; i < _node_indices.size() - 1; ++i) {
@@ -51,22 +77,39 @@ class GenericNetwork: protected GenericSystem<ode_type,
       return nodes;
     }
 
-  
+    
+    /*!
+     * Gets the indices of the beginning of every new node + (the last index + 1)
+     * of the flattened representation.
+     */
     node_size_type GetNodeIndices() {
       return _node_indices;
     }
 
 
+    /*!
+     * Gets the time of the system.
+     */
     double GetTime() {
       GenericSystem<ode_type, state_type, stepper_type>::GetTime();  
     }
 
 
+    /*!
+     * Sets the parameters of the ODE.
+     */
     double SetParameters(void* parameters) {
       GenericSystem<ode_type, state_type, stepper_type>::SetParameters(parameters);
     }
 
 
+    /*! 
+     * Integrate the system in time.
+     *
+     * @param dt timestep
+     * @param number_steps number of steps in time
+     * @param observer observer during the integration
+     */
     template<typename observer_type = boost::numeric::odeint::null_observer>
     void Integrate(double dt, unsigned int number_steps, 
         observer_type observer = observer_type()) {
@@ -75,6 +118,10 @@ class GenericNetwork: protected GenericSystem<ode_type,
     }
 
 
+    /*!
+     * Calculate the mean field as the average of the position of the
+     * oscillators in every node.
+     */
     matrix_type CalculateMeanField() {
       matrix_type mean_field;
       for (size_t i = 0; i < _node_indices.size() - 1; ++i) {
