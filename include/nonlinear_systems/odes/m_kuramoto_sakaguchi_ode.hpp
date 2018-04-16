@@ -1,5 +1,5 @@
-#ifndef __M_KURAMOTO_SIVASHINSKY_ODE__
-#define __M_KURAMOTO_SIVASHINSKY_ODE__
+#ifndef __M_KURAMOTO_SAKAGUCHI_ODE__
+#define __M_KURAMOTO_SAKAGUCHI_ODE__
 
 #include <cmath>
 #include <vector>
@@ -9,14 +9,14 @@ typedef std::vector<state_type> network_type;
 typedef std::vector<unsigned int> node_size_type;
 
 namespace nonlinear_systems {
-class MKuramotoSivashinsky {
+class MKuramotoSakaguchi {
   public:
     state_type _frequency;
     network_type _coupling;
     network_type _phase_shift;
     node_size_type _node_indices;
 
-    MKuramotoSivashinsky(const state_type& frequency, 
+    MKuramotoSakaguchi(const state_type& frequency, 
         const network_type& coupling, const network_type& phase_shift,
         const node_size_type& _node_indices)
     :_frequency(frequency), _coupling(coupling), _phase_shift(phase_shift),
