@@ -4,7 +4,8 @@ if(NL_BUILD_TESTS)
     test_generic_system.cpp 
     test_rayleigh_mean_field.cpp
     test_observers.cpp
-    test_generic_network.cpp)
+    test_generic_network.cpp
+    test_m_kuramoto.cpp)
   
   
   foreach (sourcefile ${sources})
