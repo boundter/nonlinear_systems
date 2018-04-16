@@ -1,7 +1,8 @@
 #ifndef __M_KURAMOTO_SAKAGUCHI_ODE__
 #define __M_KURAMOTO_SAKAGUCHI_ODE__
 
-#include <cmath>
+#include <cmath> // sqrt, atan2, sin, cos
+#include <stdexcept>
 #include <vector>
 
 typedef std::vector<double> state_type;
@@ -17,12 +18,31 @@ class MKuramotoSakaguchiODE {
     node_size_type _node_indices;
 
 
-    // TODO: Check correct size
     MKuramotoSakaguchiODE(const state_type& frequency, 
         const network_type& coupling, const network_type& phase_shift,
         const node_size_type& node_indices)
     :_frequency(frequency), _coupling(coupling), _phase_shift(phase_shift),
-    _node_indices(node_indices){}
+    _node_indices(node_indices){
+      if (_frequency.size() != _node_indices.back()) {
+        throw std::length_error("Frequency has the wrong length!");
+      }
+      if (_coupling.size() != _node_indices.size() - 1) {
+        throw std::length_error("Coupling has the wrong first dimension!");
+      }
+      for (size_t i = 0; i < _coupling.size(); ++i) {
+        if (_coupling[i].size() != _node_indices[i+1] - _node_indices[i]) {
+          throw std::length_error("Coupling has the wrong second dimension!");
+        }
+      }
+      if (_phase_shift.size() != _node_indices.size() - 1) {
+        throw std::length_error("Phase_shift has the wrong dimension!");
+      }
+      for (size_t i = 0; i < _phase_shift.size(); ++i) {
+        if (_phase_shift[i].size() != _node_indices.size() - 1) {
+          throw std::length_error("Phase_shift has the wrong second dimension!");
+        }
+      }
+    }
 
 
     void operator()(const state_type& x, state_type& dx, const double t) {
