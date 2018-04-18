@@ -141,6 +141,19 @@ class GenericNetwork: protected GenericSystem<ode_type,
   protected:
     node_size_type _node_indices;
     
+    /*!
+     * The network is initialized to a zero state, without initializing the ode.
+     *
+     * @param node_sizes a vector containing the size of every single node
+     * @param dimension the dimensionality of the oscillators
+     */
+    GenericNetwork(node_size_type node_sizes, unsigned int dimension)
+      : GenericSystem<ode_type, state_type, stepper_type>(0, dimension) {
+        _node_indices = CalculateNodeIndices(node_sizes);
+        this->Resize(_node_indices.back());
+      }
+
+
     node_size_type CalculateNodeIndices(const node_size_type& node_sizes) {
       node_size_type node_indices = {0};
       unsigned int offset = 0;;
