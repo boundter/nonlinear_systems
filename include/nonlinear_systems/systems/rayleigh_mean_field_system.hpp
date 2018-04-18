@@ -7,6 +7,7 @@
 #include <vector>
 #include <nonlinear_systems/odes/rayleigh_mean_field_ode.hpp>
 #include <nonlinear_systems/systems/generic_system.hpp>
+#include <nonlinear_systems/misc/statistics.hpp>
 
 typedef std::vector<double> state_type;
 typedef boost::numeric::odeint::runge_kutta4<state_type> stepper_type;
@@ -50,7 +51,8 @@ class RayleighMeanFieldSystem
           stdev_frequency);
       std::function<double()> normal_dist = std::bind(normal,
           std::ref(_rng));
-      _frequency = SampleDistribution(_frequency.size(), &normal_dist); 
+      _frequency = SampleDistribution<state_type, double>(_frequency.size(), 
+          &normal_dist); 
       this->_ode = std::unique_ptr<ode_type>(new ode_type(this->_N, _frequency,
             _nonlinearity, _coupling));
     }
@@ -85,7 +87,8 @@ class RayleighMeanFieldSystem
         std::uniform_real_distribution<double> uniform(min_x, max_x);
         std::function<double()> uniform_dist = std::bind(uniform,
             std::ref(_rng));
-        this->_x = SampleDistribution(this->_x.size(), &uniform_dist);
+        this->_x = SampleDistribution<state_type, double>(this->_x.size(), 
+            &uniform_dist);
     }
 
     
@@ -131,16 +134,6 @@ class RayleighMeanFieldSystem
     double _nonlinearity, _coupling;
     
     
-    state_type SampleDistribution(size_t number_samples, 
-        std::function<double()>* distribution) {
-      state_type samples;
-      for (size_t i = 0; i < number_samples; ++i) {
-        samples.push_back((*distribution)());
-      }
-      return samples;
-    }
-
-  
     static bool CrossedPositiveYAxis(const state_type& previous_state,
         const state_type& current_state) {
       return ((current_state[1] > 0) and
