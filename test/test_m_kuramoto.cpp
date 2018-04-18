@@ -79,3 +79,24 @@ BOOST_AUTO_TEST_CASE(test_ODE_mean_field) {
   BOOST_CHECK_CLOSE(measured[1][0], mean_field_2[0], 0.01);
   BOOST_CHECK_CLOSE(measured[1][1], mean_field_2[1], 0.01);
 }
+
+
+BOOST_AUTO_TEST_CASE(test_ODE) {
+  node_size_type node_indices = {0, 2, 4};
+  state_type frequency = {0., 0.5, 1., 2.};
+  state_type coupling_1 = {1., -1.};
+  state_type coupling_2 = {0.5, 0.3};
+  network_type coupling = {coupling_1, coupling_2};
+  state_type phase_shift_1 = {0.25, 0.15};
+  state_type phase_shift_2 = {-0.15, 0.05};
+  network_type phase_shift = {phase_shift_1, phase_shift_2};
+
+  MKuramotoSakaguchiODE ode(frequency, coupling, phase_shift, node_indices);
+  state_type state = {0.25, 0.3, M_PI, 0.8};
+  state_type deriv = {-0.05, 0.423, 0.916, 1.899};
+  state_type ode_result(4);
+  ode(state, ode_result, 0.);
+  for (size_t i = 0; i < deriv.size(); ++i) {
+    BOOST_CHECK_CLOSE(deriv[i], ode_result[i], 1);
+  }
+}
