@@ -122,7 +122,7 @@ class GenericNetwork: protected GenericSystem<ode_type,
      * Calculate the mean field as the average of the position of the
      * oscillators in every node.
      */
-    matrix_type CalculateMeanField() {
+    virtual matrix_type CalculateMeanField() {
       matrix_type mean_field;
       for (size_t i = 0; i < _node_indices.size() - 1; ++i) {
         mean_field.push_back(state_type(this->_d));
