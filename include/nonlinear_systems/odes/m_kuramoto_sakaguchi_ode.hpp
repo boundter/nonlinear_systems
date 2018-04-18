@@ -29,17 +29,15 @@ class MKuramotoSakaguchiODE {
       if (_coupling.size() != _node_indices.size() - 1) {
         throw std::length_error("Coupling has the wrong first dimension!");
       }
-      for (size_t i = 0; i < _coupling.size(); ++i) {
-        if (_coupling[i].size() != _node_indices[i+1] - _node_indices[i]) {
-          throw std::length_error("Coupling has the wrong second dimension!");
-        }
-      }
       if (_phase_shift.size() != _node_indices.size() - 1) {
         throw std::length_error("Phase_shift has the wrong dimension!");
       }
       for (size_t i = 0; i < _phase_shift.size(); ++i) {
         if (_phase_shift[i].size() != _node_indices.size() - 1) {
           throw std::length_error("Phase_shift has the wrong second dimension!");
+        }
+        if (_coupling[i].size() != _node_indices.size() - 1) {
+          throw std::length_error("Coupling has the wrong second dimension!");
         }
       }
     }

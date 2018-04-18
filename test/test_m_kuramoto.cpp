@@ -24,7 +24,7 @@ BOOST_AUTO_TEST_CASE(test_ODE_constructor) {
 
   network_type coupling_short(2);
   network_type coupling_long(4);
-  network_type coupling_correct = {filler_2, filler_1, filler_2};
+  network_type coupling_correct = {filler_3, filler_3, filler_3};
   network_type coupling_wrong = {filler_3, filler_1, filler_1};
 
   network_type phase_shift_short(2);
@@ -53,11 +53,11 @@ BOOST_AUTO_TEST_CASE(test_ODE_constructor) {
 }
 
 
-BOOST_AUTO_TEST_CASE(test_ODE) {
+BOOST_AUTO_TEST_CASE(test_ODE_mean_field) {
   state_type frequency(10);
   network_type coupling(2);
   for (size_t i = 0; i < coupling.size(); ++i) {
-    coupling[i] = state_type(5);
+    coupling[i] = state_type(2);
   }
   network_type phase_shift(2);
   for (size_t i = 0; i < phase_shift.size(); ++i) {
