@@ -1,8 +1,10 @@
 #define BOOST_TEST_MODULE MKuramotoSakaguchiSystem
 #include <boost/test/included/unit_test.hpp>
 #include <cmath>
+#include <random>
 #include <stdexcept>
 #include <nonlinear_systems/odes/m_kuramoto_sakaguchi_ode.hpp>
+#include <nonlinear_systems/systems/m_kuramoto_sakaguchi_system.hpp>
 
 typedef std::vector<double> state_type;
 typedef std::vector<state_type> network_type;
@@ -99,4 +101,136 @@ BOOST_AUTO_TEST_CASE(test_ODE) {
   for (size_t i = 0; i < deriv.size(); ++i) {
     BOOST_CHECK_CLOSE(deriv[i], ode_result[i], 1);
   }
+}
+
+
+BOOST_AUTO_TEST_CASE(test_system_default_constructor) {
+  node_size_type node_size = {2, 1, 2};
+  node_size_type node_indices = {0, 2, 3, 5};
+
+  state_type frequency_short(4);
+  state_type frequency_long(6);
+  state_type frequency_right(5);
+  
+  state_type filler_1(1);
+  state_type filler_2(2);
+  state_type filler_3(3);
+
+  network_type coupling_short(2);
+  network_type coupling_long(4);
+  network_type coupling_correct = {filler_3, filler_3, filler_3};
+  network_type coupling_wrong = {filler_3, filler_1, filler_2};
+
+  network_type phase_shift_short(2);
+  network_type phase_shift_long(4);
+  network_type phase_shift_correct = {filler_3, filler_3, filler_3};
+  network_type phase_shift_wrong = {filler_2, filler_1, filler_3};
+
+  // Test correct passing of arguments
+  BOOST_CHECK_NO_THROW(MKuramotoSakaguchiSystem(frequency_right, coupling_correct,
+        phase_shift_correct, node_size));
+  BOOST_CHECK_THROW(MKuramotoSakaguchiSystem(frequency_short, coupling_correct,
+        phase_shift_correct, node_size), std::length_error);
+  BOOST_CHECK_THROW(MKuramotoSakaguchiSystem(frequency_long, coupling_correct,
+        phase_shift_correct, node_size), std::length_error);
+  BOOST_CHECK_THROW(MKuramotoSakaguchiSystem(frequency_right, coupling_short,
+        phase_shift_correct, node_size), std::length_error);
+  BOOST_CHECK_THROW(MKuramotoSakaguchiSystem(frequency_right, coupling_long,
+        phase_shift_correct, node_size), std::length_error);
+  BOOST_CHECK_THROW(MKuramotoSakaguchiSystem(frequency_right, coupling_wrong,
+        phase_shift_correct, node_size), std::length_error);
+  BOOST_CHECK_THROW(MKuramotoSakaguchiSystem(frequency_right, coupling_correct,
+        phase_shift_long, node_size), std::length_error);
+  BOOST_CHECK_THROW(MKuramotoSakaguchiSystem(frequency_right, coupling_correct,
+        phase_shift_short, node_size), std::length_error);
+  BOOST_CHECK_THROW(MKuramotoSakaguchiSystem(frequency_right, coupling_correct,
+        phase_shift_wrong, node_size), std::length_error);
+
+  // Check correct initialization of phases
+  MKuramotoSakaguchiSystem system(frequency_right, coupling_correct, 
+      phase_shift_correct, node_size);
+
+  std::mt19937_64 rng(123456789);
+  std::uniform_real_distribution<double> uniform(-M_PI, M_PI);
+  state_type phases = system.GetState();
+  for (size_t i = 0; i < 5; ++i) {
+    BOOST_CHECK_CLOSE_FRACTION(phases[i], uniform(rng), 0.01);
+  }
+}
+
+
+BOOST_AUTO_TEST_CASE(test_system_2_constructor) {
+  double eps = 0.3;
+  double freq = 1.;
+  node_size_type node_size_correct = {5, 4};
+  node_size_type node_size_short = {5};
+  node_size_type node_size_long = {5, 4, 6};
+
+  BOOST_CHECK_NO_THROW(MKuramotoSakaguchiSystem(freq, eps, node_size_correct));
+  BOOST_CHECK_THROW(MKuramotoSakaguchiSystem(freq, eps, node_size_short),
+      std::length_error);
+  BOOST_CHECK_THROW(MKuramotoSakaguchiSystem(freq, eps, node_size_long),
+      std::length_error);
+  
+  // Check correct initialization of phases; also test SetRandomUniformState
+  MKuramotoSakaguchiSystem system(freq, eps, node_size_correct);
+
+  std::mt19937_64 rng(123456789);
+  std::uniform_real_distribution<double> uniform(-M_PI, M_PI);
+  state_type phases = system.GetState();
+  for (size_t i = 0; i < 9; ++i) {
+    BOOST_CHECK_CLOSE_FRACTION(phases[i], uniform(rng), 0.01);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_system_mean_field) {
+  node_size_type node_size = {5, 5};
+  double eps = 0.3;
+  double freq = 1.;
+
+  MKuramotoSakaguchiSystem system(freq, eps, node_size);
+
+  // Test for correct calculation of mean field
+  state_type x = {0., 0., M_PI, M_PI, M_PI/2.,
+                  -0.5, -0.3, 1.2, 1.5, 2};
+  state_type mean_field_1 = {0.2, M_PI/2};
+  state_type mean_field_2 = {0.554315, 0.84};
+  system.SetState(x);
+  network_type measured = system.CalculateMeanField();
+  BOOST_CHECK_CLOSE(measured[0][0], mean_field_1[0], 0.01);
+  BOOST_CHECK_CLOSE(measured[0][1], mean_field_1[1], 0.01);
+  BOOST_CHECK_CLOSE(measured[1][0], mean_field_2[0], 0.01);
+  BOOST_CHECK_CLOSE(measured[1][1], mean_field_2[1], 0.01);
+
+  // Test for generalzied mean field
+  state_type generalized_mean_field_1 = {0.6, 0};
+  state_type generalized_mean_field_2 = {0.337261, -2.21696958};
+  measured = system.CalculateGeneralizedMeanField(2);
+  BOOST_CHECK_CLOSE(measured[0][0], generalized_mean_field_1[0], 0.01);
+  BOOST_CHECK_SMALL(measured[0][1], 0.01);
+  BOOST_CHECK_CLOSE(measured[1][0], generalized_mean_field_2[0], 0.01);
+  BOOST_CHECK_CLOSE(measured[1][1], generalized_mean_field_2[1], 0.01);
+}
+
+
+BOOST_AUTO_TEST_CASE(test_system_forcing) {
+  node_size_type node_size = {2, 2};
+  state_type freq(4);
+  state_type phase_shift_1 = {0.5, 0.2};
+  state_type phase_shift_2 = {0.4, 0.1};
+  network_type phase_shift = {phase_shift_1, phase_shift_2};
+  state_type coupling_1 = {0.2, 0.4};
+  state_type coupling_2 = {0.4, 0.3};
+  network_type coupling = {coupling_1, coupling_2};
+  
+  MKuramotoSakaguchiSystem system(freq, coupling, phase_shift, node_size);
+  state_type x = {0., M_PI/2., M_PI/2., M_PI};
+  system.SetState(x);
+  state_type forcing_1 = {0.175814, 2.161817171};
+  state_type forcing_2 = {0.200289, 1.715838424};
+  network_type measured = system.CalculateForcing();
+  BOOST_CHECK_CLOSE(measured[0][0], forcing_1[0], 0.01);
+  BOOST_CHECK_CLOSE(measured[0][1], forcing_1[1], 0.01);
+  BOOST_CHECK_CLOSE(measured[1][0], forcing_2[0], 0.01);
+  BOOST_CHECK_CLOSE(measured[1][1], forcing_2[1], 0.01);
 }

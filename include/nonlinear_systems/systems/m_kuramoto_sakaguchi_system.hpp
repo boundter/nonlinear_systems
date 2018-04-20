@@ -21,32 +21,33 @@ class MKuramotoSakaguchiSystem
     MKuramotoSakaguchiSystem(const state_type& frequency, 
         const network_type& coupling, const network_type& phase_shift,
         const node_size_type& node_size, unsigned int seed=123456789)
-      :GenericNetwork<MKuramotoSakaguchi, double>(node_sizes, 1) {
+      :GenericNetwork<MKuramotoSakaguchiODE, double>(node_size, 1) {
       _rng.seed(seed);
       SetRandomUniformState();
       _coupling = coupling;
       _phase_shift = phase_shift;
       _node_size = node_size;
-      this->_ode = std::unqiue_ptr<MKuramotoSakaguchiODE>(
+      this->_ode = std::unique_ptr<MKuramotoSakaguchiODE>(
           new MKuramotoSakaguchiODE(frequency, _coupling, _phase_shift, 
             this->_node_indices));
     }
 
 
-    MKuramotoSakaguchiSystem(double repulsive_excess, double frequency,
+    MKuramotoSakaguchiSystem(double frequency, double repulsive_excess,
         const node_size_type& node_size, unsigned int seed=123456789)
-      : GenericNetwork<MKuramotoSakaguchi, double>(node_size, 1) {
+      :GenericNetwork<MKuramotoSakaguchiODE, double>(node_size, 1) {
       _rng.seed(seed); 
       SetRandomUniformState();
       state_type frequency_vector(this->_node_indices.back());
-      for (size_t i = this->_node_indices[1], i < frequency_vector.size(); ++i) {
+      for (size_t i = this->_node_indices[1]; i < frequency_vector.size(); ++i) {
         frequency_vector[i] = frequency;   
       }
+      // defining this also implicitly checks for the correct system size
       state_type coupling_row = {1., -(1.+repulsive_excess)};
       network_type coupling = {coupling_row, coupling_row};
       state_type zero_row = {0., 0.};
       network_type phase_shift = {zero_row, zero_row};
-      this->_ode = std::unqiue_ptr<MKuramotoSakaguchiODE>(
+      this->_ode = std::unique_ptr<MKuramotoSakaguchiODE>(
           new MKuramotoSakaguchiODE(frequency_vector, coupling, phase_shift, 
             this->_node_indices));
       
@@ -75,27 +76,29 @@ class MKuramotoSakaguchiSystem
     }
 
 
-    network CalculateForcing() {
-      network forcing(_node_size.size());
+    network_type CalculateForcing() {
+      network_type forcing(_node_size.size());
       network_type mean_field = CalculateMeanField();
       for (size_t i = 0; i < forcing.size(); ++i) {
         double real_part = 0., imag_part = 0.;
         for (size_t j = 0; j < _node_size.size(); ++j) {
-          double coupling_part = _coupling[i][j]*_node_size[k]
+          double coupling_part = _coupling[i][j]*_node_size[j]
             /this->_node_indices.back()*mean_field[j][0];
           real_part += coupling_part*cos(mean_field[j][1]+_phase_shift[i][j]);
           imag_part += coupling_part*sin(mean_field[j][1]+_phase_shift[i][j]);
         }
-        forcing[i][0] = sqrt(real_part*real_part + imag_part*imag_part);
-        forcing[i][1] = atan2(imag_part, real_part);
+        forcing[i].push_back(sqrt(real_part*real_part + imag_part*imag_part));
+        forcing[i].push_back(atan2(imag_part, real_part));
       }
+      return forcing;
     }
 
 
   protected:
     std::mt19937_64 _rng;
-    network_type _coupling, _node_size, _phase_shift;
+    network_type _coupling, _phase_shift;
+    node_size_type _node_size;
     
-}
+};
 } // nonlinear_systems
 #endif
