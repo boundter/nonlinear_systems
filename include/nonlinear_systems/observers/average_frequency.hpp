@@ -116,4 +116,52 @@ class AverageFrequencyObserver {
 };
 }
 
+
+// TODO: Add tests
+template<typename system_type, typename state_type = std::vector<double>,
+  typename mean_field_type = state_type>
+class AverageFrequencyMeanFieldPhaseObserver {
+  public:
+    system_type _system;
+
+    AverageFrequencyMeanFieldObserver(system_type& system, 
+        const mean_field_type& one_step_before, 
+        const mean_field_type& two_steps_before, double dt, 
+        unsigned int number_mean_fields, state_type& average_frequency)
+      :_system(system) {
+        _number_mean_fields = number_mean_fields;
+        std::vector<double> mean_field_phase_before = 
+          GetMeanFieldPhase(one_step_before);
+        std::vector<double> mean_field_phase_two_before = 
+          GetMeanFieldPhase(two_steps_before);
+        _phase_observer = 
+          new AverageFrequencyPhaseObserver<std::vector<double> >(
+              mean_field_phase_before, mean_field_phase_two_before,
+              dt, average_frequency);
+      }
+
+
+    void operator()(const state_type& x, double t) {
+      mean_field_type mean_field = _system.CalculateMeanField();
+      std::vector<double> mean_field_phase = GetMeanFieldPhase(mean_field);
+      _phase_observer->operator()(mean_field_phases, t)
+    }
+
+
+  protected:
+    unsigned int _number_mean_fields;
+    AverageFrequencyPhaseObserver<std::vector<double> >* _phase_observer;
+
+    std::vector<double> GetMeanFieldPhase(const mean_field_type& mean_field) {
+      std::vector<double> phase;
+      if (_number_mean_fields == 1) {
+        phase.push_back(mean_field[1]);
+      }
+      for (unsigned int i = 0; i < _number_mean_fields; ++i) {
+        phase.push_back(mean_field[i][1]);
+      }
+    }
+  }
+};
+
 #endif
