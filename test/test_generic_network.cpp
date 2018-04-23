@@ -90,7 +90,8 @@ BOOST_AUTO_TEST_CASE(test_integrate) {
   // Integrate increases time correctly
   double t0 = network.GetTime();
   network.Integrate(dt, steps_increase);
-  BOOST_CHECK_CLOSE(t0, network.GetTime(), 0.01);
+  BOOST_CHECK_CLOSE(t0 + static_cast<double>(steps_increase)*dt, 
+      network.GetTime(), 0.01);
 
   // Integrate changes the state correctly
   // the analytic solution for the harmonic oscillator is 
