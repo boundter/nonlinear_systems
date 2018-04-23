@@ -4,6 +4,8 @@
 #include <cmath> // copysign, atan2, fabs
 #include <vector>
 
+// TODO: Add observer for AverageFrequencyMeanFieldObserver
+// TODO: Add observer for AverageFrequencyMeanFieldPhaseAndPhaseObserver
 namespace nonlinear_systems {
 
 /*!
