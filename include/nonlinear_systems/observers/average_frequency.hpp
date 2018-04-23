@@ -114,17 +114,37 @@ class AverageFrequencyObserver {
       return phases;
     }
 };
+
+
+template <typename mean_field_type>
+class MeanFieldHelper {
+  public:
+
+    std::vector<double> GetMeanFieldPhase(const mean_field_type& mean_field) {
+      std::vector<double> phase; 
+      phase.push_back(mean_field[1]);
+      return phase;
+    };
+};
+
+template<> std::vector<double> MeanFieldHelper<std::vector<std::vector<double> > >
+::GetMeanFieldPhase(const std::vector<std::vector<double> >& mean_field) {
+  std::vector<double> phase;
+  for (unsigned int i = 0; i < mean_field.size(); ++i) {
+    phase.push_back(mean_field[i][1]);
+  }
+  return phase;
 }
 
 
-// TODO: Add tests
+// TODO: Add tests for network
 template<typename system_type, typename state_type = std::vector<double>,
   typename mean_field_type = state_type>
 class AverageFrequencyMeanFieldPhaseObserver {
   public:
-    system_type _system;
+    system_type& _system;
 
-    AverageFrequencyMeanFieldObserver(system_type& system, 
+    AverageFrequencyMeanFieldPhaseObserver(system_type& system, 
         const mean_field_type& one_step_before, 
         const mean_field_type& two_steps_before, double dt, 
         unsigned int number_mean_fields, state_type& average_frequency)
@@ -144,24 +164,19 @@ class AverageFrequencyMeanFieldPhaseObserver {
     void operator()(const state_type& x, double t) {
       mean_field_type mean_field = _system.CalculateMeanField();
       std::vector<double> mean_field_phase = GetMeanFieldPhase(mean_field);
-      _phase_observer->operator()(mean_field_phases, t)
+      _phase_observer->operator()(mean_field_phase, t);
     }
 
 
   protected:
     unsigned int _number_mean_fields;
     AverageFrequencyPhaseObserver<std::vector<double> >* _phase_observer;
+    MeanFieldHelper<mean_field_type> _mean_field_helper;
 
     std::vector<double> GetMeanFieldPhase(const mean_field_type& mean_field) {
-      std::vector<double> phase;
-      if (_number_mean_fields == 1) {
-        phase.push_back(mean_field[1]);
-      }
-      for (unsigned int i = 0; i < _number_mean_fields; ++i) {
-        phase.push_back(mean_field[i][1]);
-      }
+      return _mean_field_helper.GetMeanFieldPhase(mean_field);
     }
-  }
-};
+  };
+} // nonlinear_systems
 
 #endif

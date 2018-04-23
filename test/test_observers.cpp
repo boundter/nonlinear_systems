@@ -42,6 +42,50 @@ class HarmonicOscillator {
 };
 
 
+class Kuramoto {
+  public:
+    double omega;
+    double K;
+
+    Kuramoto(void* params) {
+      omega = reinterpret_cast<double*>(params)[0];
+      K = reinterpret_cast<double*>(params)[1];
+    }
+
+
+    void operator()(const state_type& x, state_type& dx, double t) {
+      state_type mean_field = CalculateMeanField(x);
+      for (unsigned int i = 0; i < x.size(); ++i) {
+        dx[i] = omega + mean_field[0]*K*sin(mean_field[1] - x[i]);
+      }
+    }
+
+    state_type CalculateMeanField(const state_type& x) {
+      state_type mean_field(2);
+      double re = 0., im = 0.;
+      for (unsigned int i = 0; i < x.size(); ++i) {
+        re += cos(x[i]);
+        im += sin(x[i]);
+      }
+      re /= static_cast<double>(x.size());
+      im /= static_cast<double>(x.size());
+      mean_field[0] = sqrt(re*re + im*im);
+      mean_field[1] = atan2(im, re);
+      return mean_field;
+    }
+};
+
+class KuramotoSystem: public GenericSystem<Kuramoto, state_type> {
+    public:
+      KuramotoSystem(void* params, unsigned int N_oscillators)
+      : GenericSystem<Kuramoto, state_type>(N_oscillators, 1, params) {};
+
+      state_type CalculateMeanField() {
+        return this->_ode->CalculateMeanField(this->_x);
+      }
+};
+
+
 BOOST_AUTO_TEST_CASE(test_average_frequency_phase_unwrapped) {
   double params[] = {1.};
   GenericSystem<SimpleRotators> system(2, 1, params);
@@ -82,4 +126,26 @@ BOOST_AUTO_TEST_CASE(test_average_frequency) {
 
   BOOST_CHECK_CLOSE_FRACTION(params[0], fabs(average_frequency[0]), 0.01);
   BOOST_CHECK_CLOSE_FRACTION(2*params[0], fabs(average_frequency[1]), 0.01);
+}
+
+
+BOOST_AUTO_TEST_CASE(test_mean_field_average_frequency) {
+  double params[] = {1., 1.};
+  KuramotoSystem system(params, 2);
+  
+  double dt = 0.01;
+  unsigned int N_transient = 1e3;
+  unsigned int N_mean = 100;
+  state_type x = {0., 1.};
+  system.SetPosition(x);
+  system.Integrate(dt, N_transient);
+  state_type state_two_before = system.CalculateMeanField();
+  system.Integrate(dt, 1);
+  state_type state_one_before = system.CalculateMeanField();
+  system.Integrate(dt, 1);
+  state_type average_frequency(1);
+  system.Integrate(dt, N_mean, 
+      AverageFrequencyMeanFieldPhaseObserver<KuramotoSystem, state_type, state_type>(
+        system, state_one_before, state_two_before, dt, 1, average_frequency));
+  BOOST_CHECK_CLOSE_FRACTION(average_frequency[0], 1., 0.01);
 }
