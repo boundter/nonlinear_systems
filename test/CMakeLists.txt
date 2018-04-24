@@ -1,4 +1,6 @@
 if(NL_BUILD_TESTS)
+
+  set(CMAKE_BUILD_TYPE Debug)
   
   set(sources 
     test_generic_system.cpp 
