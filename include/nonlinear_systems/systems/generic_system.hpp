@@ -102,7 +102,7 @@ class GenericSystem {
 
 
     /*!
-     * \breif Calculates the coordinates on a sphere of the same dimension as
+     * \brief Calculates the coordinates on a sphere of the same dimension as
      * the phase space. If the deimension is 1, the corrdinates will be wrapped
      * around the unit circle. The first coordinate is the radius and the later
      * ones are the phases. Careful: in 3-d this is not the same as spherical
