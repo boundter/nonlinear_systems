@@ -210,6 +210,40 @@ BOOST_AUTO_TEST_CASE(test_MeanField){
 }
 
 
+BOOST_AUTO_TEST_CASE(test_MeanFieldSpherical){
+  double params = 1.;
+
+  // 1 dimensional; ODE will not be used, HarmonicOscillator as dummy
+  GenericSystem<HarmonicOscillator> system_1(5, 1, &params);
+  state_type x_1 = {0., 0., 3*M_PI, 3*M_PI, M_PI/2.};
+  system_1.SetPosition(x_1);
+  state_type spherical_1 = system_1.CalculateMeanFieldSpherical();
+  BOOST_TEST(spherical_1.size() == 2);
+  BOOST_CHECK_CLOSE(spherical_1[0], 0.2, 0.01);
+  BOOST_CHECK_CLOSE(spherical_1[1], M_PI/2., 0.01);
+  
+  // 3 dimensional; ODE will not be used, HarmonicOscillator as dummy
+  GenericSystem<HarmonicOscillator> system_2(4, 2, &params);
+  state_type x_2 = {0., 5., 3., 2., 1., 3., 7., 8.};
+  system_2.SetPosition(x_2);
+  state_type spherical_2 = system_2.CalculateMeanFieldSpherical();
+  BOOST_TEST(spherical_2.size() == 2);
+  BOOST_CHECK_CLOSE(spherical_2[0], 5.27, 0.1);
+  BOOST_CHECK_CLOSE(spherical_2[1], 1.0222, 0.1);
+  
+  // 3 dimensional; ODE will not be used, HarmonicOscillator as dummy
+  GenericSystem<HarmonicOscillator> system_3(3, 3, &params);
+  state_type x_3 = {0., 1., 5., 4., 2., 7., 5., 2., 4.};
+  system_3.SetPosition(x_3);
+  state_type spherical_3 = system_3.CalculateMeanFieldSpherical();
+  BOOST_TEST(spherical_3.size() == 3);
+  BOOST_CHECK_CLOSE(spherical_3[0], 6.342, 0.1);
+  BOOST_CHECK_CLOSE(spherical_3[1], 1.078, 0.1);
+  BOOST_CHECK_CLOSE(spherical_3[2], 1.2679, 0.1);
+
+}
+
+
 BOOST_AUTO_TEST_CASE(test_CalculatePeriod){
   double params = 1.;
   GenericSystem<HarmonicOscillator> system = 

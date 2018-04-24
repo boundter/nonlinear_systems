@@ -100,6 +100,53 @@ class GenericSystem {
     }
 
 
+    /*
+     * \breif Calculates the coordinates on a sphere of the same dimension as
+     * the phase space. If the deimension is 1, the corrdinates will be wrapped
+     * around the unit circle. The first coordinate is the radius and the later
+     * ones are the phases. Careful: in 3-d this is not the same as spherical
+     * coordinates!
+     */
+    state_type CalculateMeanFieldSpherical() {
+      // for d = 1 wrap around unit circle
+      state_type spherical_mean_field;
+      if (_d == 1) {
+        double x = 0, y = 0;
+        for (size_t i = 0; i < _x.size(); ++i) {
+          x += cos(_x[i]);
+          y += sin(_x[i]);
+        }
+        spherical_mean_field.resize(2);
+        spherical_mean_field[0] = 1/static_cast<double>(_x.size())*sqrt(x*x + y*y);
+        spherical_mean_field[1] = atan2(y, x);
+      }
+      else {
+        state_type mean_field = CalculateMeanField();
+        state_type sum_squared(_d);
+        for (size_t i = 0; i < _d; ++i) {
+          sum_squared[0] += mean_field[i]*mean_field[i];
+        }
+        for (size_t i = 1; i < _d; ++i) {
+          sum_squared[i] = sum_squared[i-1] - mean_field[i-1]*mean_field[i-1];
+        }
+        // radius or distance to the origin
+        spherical_mean_field.push_back(sqrt(sum_squared[0]));
+        for (size_t i = 0; i < _d - 2; ++i) {
+          spherical_mean_field.push_back(acos(mean_field[i]/sqrt(sum_squared[i])));
+        }
+        if (mean_field.back() < 0) {
+          spherical_mean_field.push_back(
+              -acos(mean_field[_d-2]/sqrt(sum_squared[_d-2])));
+        }
+        else {
+          spherical_mean_field.push_back(
+              acos(mean_field[_d-2]/sqrt(sum_squared[_d-2])));
+        }
+      }
+      return spherical_mean_field;
+    }
+
+
     /*!
      * \brief Integrate the system whith an observer.
      *
