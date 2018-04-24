@@ -146,6 +146,50 @@ BOOST_AUTO_TEST_CASE(test_mean_field_average_frequency) {
   state_type average_frequency(1);
   system.Integrate(dt, N_mean, 
       AverageFrequencyMeanFieldPhaseObserver<KuramotoSystem, state_type, state_type>(
-        system, state_one_before, state_two_before, dt, 1, average_frequency));
+        system, state_one_before, state_two_before, dt, average_frequency));
   BOOST_CHECK_CLOSE_FRACTION(average_frequency[0], 1., 0.01);
+}
+
+
+BOOST_AUTO_TEST_CASE(test_mean_field_and_phase_average_frequency) {
+  double params[] = {1., 1.};
+  KuramotoSystem system(params, 2);
+
+  double dt = 0.01;
+  unsigned int N_transient = 1e3;
+  unsigned int N_mean = 100;
+  state_type x = {0., 1.};
+  system.SetPosition(x);
+  system.Integrate(dt, N_transient);
+  state_type state_two_before = system.GetPosition();
+  state_type mean_field_two_before = system.CalculateMeanField();
+  system.Integrate(dt, 1);
+  state_type state_one_before = system.GetPosition();
+  state_type mean_field_one_before = system.CalculateMeanField();
+  system.Integrate(dt, 1);
+  state_type average_frequency;
+  state_type average_frequency_mean_field;
+  system.Integrate(dt, N_mean,
+      AverageFrequencyMeanFieldPhaseAndPhaseObserver<KuramotoSystem,
+      state_type, state_type>(system, state_one_before, state_two_before,
+        mean_field_one_before, mean_field_two_before, dt, average_frequency,
+        average_frequency_mean_field));
+  BOOST_TEST(average_frequency.size() == 2);
+  BOOST_TEST(average_frequency_mean_field.size() == 1);
+  BOOST_CHECK_CLOSE_FRACTION(average_frequency[0], 1., 0.1);
+  BOOST_CHECK_CLOSE_FRACTION(average_frequency[1], 1., 0.1);
+  BOOST_CHECK_CLOSE_FRACTION(average_frequency_mean_field[0], 1., 0.1);
+
+  // Integration in observer
+  state_type frequency;
+  state_type frequency_mean_field;
+  system.Integrate(dt, N_mean,
+      AverageFrequencyMeanFieldPhaseAndPhaseObserver<KuramotoSystem,
+      state_type, state_type>(system, dt, frequency, frequency_mean_field));
+  BOOST_TEST(frequency.size() == 2);
+  BOOST_TEST(frequency_mean_field.size() == 1);
+  BOOST_CHECK_CLOSE_FRACTION(frequency[0], 1., 0.1);
+  BOOST_CHECK_CLOSE_FRACTION(frequency[1], 1., 0.1);
+  BOOST_CHECK_CLOSE_FRACTION(frequency_mean_field[0], 1., 0.1);
+
 }

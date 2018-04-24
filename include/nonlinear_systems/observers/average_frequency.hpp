@@ -34,6 +34,7 @@ class AverageFrequencyPhaseObserver {
         _two_steps_before = two_steps_before;
         _dt = dt;
         step_number = 0;
+        _average_frequency.resize(one_step_before.size());
       }
 
 
@@ -149,9 +150,8 @@ class AverageFrequencyMeanFieldPhaseObserver {
     AverageFrequencyMeanFieldPhaseObserver(system_type& system, 
         const mean_field_type& one_step_before, 
         const mean_field_type& two_steps_before, double dt, 
-        unsigned int number_mean_fields, state_type& average_frequency)
+        state_type& average_frequency)
       :_system(system) {
-        _number_mean_fields = number_mean_fields;
         std::vector<double> mean_field_phase_before = 
           GetMeanFieldPhase(one_step_before);
         std::vector<double> mean_field_phase_two_before = 
@@ -171,14 +171,73 @@ class AverageFrequencyMeanFieldPhaseObserver {
 
 
   protected:
-    unsigned int _number_mean_fields;
     AverageFrequencyPhaseObserver<std::vector<double> >* _phase_observer;
     MeanFieldHelper<mean_field_type> _mean_field_helper;
 
     std::vector<double> GetMeanFieldPhase(const mean_field_type& mean_field) {
       return _mean_field_helper.GetMeanFieldPhase(mean_field);
     }
-  };
+};
+
+template<typename system_type, typename state_type = std::vector<double>, 
+  typename mean_field_type = state_type>
+class AverageFrequencyMeanFieldPhaseAndPhaseObserver {
+  public:
+    
+    AverageFrequencyMeanFieldPhaseAndPhaseObserver(system_type& system,
+        const state_type& one_step_before, const state_type& two_steps_before,
+        const mean_field_type& mean_field_one_before,
+        const mean_field_type& mean_field_two_before,
+        double dt, state_type& average_frequency_phase,
+        mean_field_type& average_frequency_mean_field) {
+      InitializePointers(system, one_step_before, two_steps_before, 
+          mean_field_one_before, mean_field_two_before, dt, 
+          average_frequency_phase, average_frequency_mean_field);
+    }
+
+    AverageFrequencyMeanFieldPhaseAndPhaseObserver(system_type& system,
+        double dt, state_type& average_frequency_phase,
+        mean_field_type& average_frequency_mean_field) {
+      state_type two_steps_before = system.GetPosition();
+      mean_field_type mean_field_two_before = system.CalculateMeanField();
+      system.Integrate(dt, 1);
+      state_type one_step_before = system.GetPosition();
+      mean_field_type mean_field_one_before = system.CalculateMeanField();
+      system.Integrate(dt, 1);
+      InitializePointers(system, one_step_before, two_steps_before, 
+          mean_field_one_before, mean_field_two_before, dt, 
+          average_frequency_phase, average_frequency_mean_field);
+    }
+
+
+    void operator()(const state_type& x, double t) {
+      _phase_observer->operator()(x, t);
+      _mean_field_observer->operator()(x,t);
+    }
+
+
+  protected:
+    std::shared_ptr<AverageFrequencyMeanFieldPhaseObserver<system_type, 
+      state_type, mean_field_type> >
+      _mean_field_observer;
+    std::shared_ptr<AverageFrequencyPhaseObserver<state_type> > _phase_observer;
+
+    void InitializePointers(system_type& system,
+        const state_type& one_step_before, const state_type& two_steps_before,
+        const mean_field_type& mean_field_one_before,
+        const mean_field_type& mean_field_two_before,
+        double dt, state_type& average_frequency_phase,
+        mean_field_type& average_frequency_mean_field) {
+      _mean_field_observer = std::shared_ptr<AverageFrequencyMeanFieldPhaseObserver<
+        system_type, state_type, mean_field_type> >(
+            new AverageFrequencyMeanFieldPhaseObserver<
+        system_type, state_type, mean_field_type>(system, mean_field_one_before,
+            mean_field_two_before, dt, average_frequency_mean_field));
+      _phase_observer = std::shared_ptr<AverageFrequencyPhaseObserver<state_type> >
+        ( new AverageFrequencyPhaseObserver<state_type>(
+          one_step_before, two_steps_before, dt, average_frequency_phase));
+    }
+};
 } // nonlinear_systems
 
 #endif
