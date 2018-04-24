@@ -8,6 +8,7 @@
 #include <boost/numeric/odeint/integrate/check_adapter.hpp>
 #include <boost/numeric/odeint/integrate/integrate_n_steps.hpp>
 #include <boost/numeric/odeint/integrate/null_observer.hpp>
+#include <nonlinear_systems/misc/coordinates.hpp>
 
 // TODO: Which functions need to be virtual?
 // TODO: Use proper error handling
@@ -105,7 +106,7 @@ class GenericSystem {
      * the phase space. If the deimension is 1, the corrdinates will be wrapped
      * around the unit circle. The first coordinate is the radius and the later
      * ones are the phases. Careful: in 3-d this is not the same as spherical
-     * coordinates!
+     * coordinates with polar angle and azimuth!
      */
     state_type CalculateMeanFieldSpherical() {
       // for d = 1 wrap around unit circle
@@ -121,27 +122,7 @@ class GenericSystem {
         spherical_mean_field[1] = atan2(y, x);
       }
       else {
-        state_type mean_field = CalculateMeanField();
-        state_type sum_squared(_d);
-        for (size_t i = 0; i < _d; ++i) {
-          sum_squared[0] += mean_field[i]*mean_field[i];
-        }
-        for (size_t i = 1; i < _d; ++i) {
-          sum_squared[i] = sum_squared[i-1] - mean_field[i-1]*mean_field[i-1];
-        }
-        // radius or distance to the origin
-        spherical_mean_field.push_back(sqrt(sum_squared[0]));
-        for (size_t i = 0; i < _d - 2; ++i) {
-          spherical_mean_field.push_back(acos(mean_field[i]/sqrt(sum_squared[i])));
-        }
-        if (mean_field.back() < 0) {
-          spherical_mean_field.push_back(
-              -acos(mean_field[_d-2]/sqrt(sum_squared[_d-2])));
-        }
-        else {
-          spherical_mean_field.push_back(
-              acos(mean_field[_d-2]/sqrt(sum_squared[_d-2])));
-        }
+        spherical_mean_field = CartesianToSpherical(CalculateMeanField());
       }
       return spherical_mean_field;
     }
