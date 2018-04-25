@@ -229,7 +229,7 @@ class AverageFrequencyMeanFieldPhaseAndPhaseObserver {
         const mean_field_type& mean_field_one_before,
         const mean_field_type& mean_field_two_before,
         double dt, state_type& average_frequency_phase,
-        mean_field_type& average_frequency_mean_field) {
+        state_type& average_frequency_mean_field) {
       _mean_field_observer = std::shared_ptr<AverageFrequencyMeanFieldPhaseObserver<
         system_type, state_type, mean_field_type> >(
             new AverageFrequencyMeanFieldPhaseObserver<

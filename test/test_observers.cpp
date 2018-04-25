@@ -2,6 +2,7 @@
 #include <boost/test/included/unit_test.hpp>
 #include <nonlinear_systems/systems/generic_system.hpp>
 #include <nonlinear_systems/observers/average_frequency.hpp>
+#include <nonlinear_systems/systems/m_kuramoto_sakaguchi_system.hpp>
 #include <cmath>
 #include <iostream>
 
@@ -10,6 +11,7 @@ typedef boost::numeric::odeint::runge_kutta4<state_type> stepper_type;
 
 using namespace nonlinear_systems;
 
+// TODO: Refactor simple odes
 class SimpleRotators {
   public:
     double omega;
@@ -148,6 +150,29 @@ BOOST_AUTO_TEST_CASE(test_mean_field_average_frequency) {
       AverageFrequencyMeanFieldPhaseObserver<KuramotoSystem, state_type, state_type>(
         system, state_one_before, state_two_before, dt, average_frequency));
   BOOST_CHECK_CLOSE_FRACTION(average_frequency[0], 1., 0.01);
+
+  // Network
+  double frequency = 1., eps = 0.;
+  std::vector<unsigned int> node_size = {4, 5};
+  MKuramotoSakaguchiSystem mkur(frequency, eps, node_size);
+  dt = 0.01;
+  N_transient = 1e3;
+  N_mean = 100;
+  mkur.Integrate(dt, N_transient);
+  std::vector<std::vector<double> > mean_field_two_before = mkur.CalculateMeanField();
+  mkur.Integrate(dt, 1);
+  std::vector<std::vector<double> > mean_field_one_before = mkur.CalculateMeanField();
+  mkur.Integrate(dt, 1);
+  std::vector<double> average_frequency_network;
+  mkur.Integrate(dt, N_mean,
+      AverageFrequencyMeanFieldPhaseObserver<MKuramotoSakaguchiSystem,
+      std::vector<double>, std::vector<std::vector<double> >
+      >(mkur, mean_field_one_before,
+        mean_field_two_before, dt, average_frequency_network));
+  std::vector<double> result = {-0.1206, 0.5293}; // not quite sure if this is correct
+  BOOST_TEST(average_frequency_network.size() == 2);
+  BOOST_CHECK_CLOSE_FRACTION(average_frequency_network[0], result[0], 0.01);
+  BOOST_CHECK_CLOSE_FRACTION(average_frequency_network[1], result[1], 0.01);
 }
 
 
