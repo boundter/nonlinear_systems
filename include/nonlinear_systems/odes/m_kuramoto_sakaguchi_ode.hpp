@@ -10,6 +10,14 @@ typedef std::vector<state_type> network_type;
 typedef std::vector<unsigned int> node_size_type;
 
 namespace nonlinear_systems {
+/*!
+ * The M-Kuramoto-Sakaguchi ODE describes M groups of Kuramoto-Sakaguchi
+ * oscillators, where each group can have a different coupling and phase shift.
+ * The ODE for an oscillator reads
+ * \f[ \dot{\varphi}_i^{\sigma} = \omega_i + \sum_{\sigma' = 1}^M
+ * \frac{K_{\sigma\sigma'}}{N} \sum_{j=1}^{N_{\sigma'}} 
+ * \sin(\varphi_j^{\sigma'} - \varphi_i^{\sigma} + \alpha_{\sigma\sigma'}) \f]
+ */
 class MKuramotoSakaguchiODE {
   public:
     state_type _frequency;
@@ -17,7 +25,13 @@ class MKuramotoSakaguchiODE {
     network_type _phase_shift;
     node_size_type _node_indices;
 
-
+    /*!
+     * @param frequency flattened representation of the oscillators natural
+     * frequency.
+     * @param coupling matrix of the coupling between groups.
+     * @param phase_shift matrix of the phase shift between groups.
+     * @param node_size the size of the groups/nodes.
+     */
     MKuramotoSakaguchiODE(const state_type& frequency, 
         const network_type& coupling, const network_type& phase_shift,
         const node_size_type& node_indices)
@@ -62,6 +76,12 @@ class MKuramotoSakaguchiODE {
       }
     }
 
+
+    /*!
+     *  Calculates the mean field for the seperate groups. The first index gives
+     *  the group number and the second one the quantity; 0 is the order
+     *  parameter and 1 the phase.
+     */
     network_type CalculateMeanField(const state_type& x) {
       network_type mean_field;
       for (size_t i = 0; i < _node_indices.size() - 1; ++i) {
