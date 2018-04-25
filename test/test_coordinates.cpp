@@ -16,13 +16,6 @@ BOOST_AUTO_TEST_CASE(test_spherical) {
   for (size_t i = 0; i < spherical.size(); ++i) {
     BOOST_CHECK_CLOSE_FRACTION(spherical[i], spherical_2[i], 0.01);
   }
-  /*
-  state_type spherical_iterator = CartesianToSpherical(x_2.begin(), x_2.end());
-  BOOST_TEST(spherical_iterator.size() == x_2.size());
-  for (size_t i = 0; i < spherical_iterator.size(); ++i) {
-    BOOST_CHECK_CLOSE_FRACTION(spherical_iterator[i], spherical_2[i], 0.01);
-  }
-  */
   
   // 3-dimensions
   state_type x_3 = {6., 2., -1.};
