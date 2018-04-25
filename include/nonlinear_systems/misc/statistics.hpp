@@ -17,8 +17,6 @@ state_type SampleDistribution(size_t number_samples,
   }
   return samples;
 }
-
-
 }// nonlinear_systems
 
 #endif
