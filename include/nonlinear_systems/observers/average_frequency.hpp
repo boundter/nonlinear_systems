@@ -6,6 +6,8 @@
 
 // TODO: Add observer for AverageFrequencyMeanFieldObserver
 // TODO: Add observer for AverageFrequencyMeanFieldPhaseAndPhaseObserver
+// TODO: Simplify observers by combining observers for phase oscillators and
+// limit cycle oscillators
 namespace nonlinear_systems {
 
 /*!
