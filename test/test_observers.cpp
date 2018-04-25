@@ -217,4 +217,26 @@ BOOST_AUTO_TEST_CASE(test_mean_field_and_phase_average_frequency) {
   BOOST_CHECK_CLOSE_FRACTION(frequency[1], 1., 0.1);
   BOOST_CHECK_CLOSE_FRACTION(frequency_mean_field[0], 1., 0.1);
 
+  // Network with Integration in Obsrever
+  double omega = 1., eps = 0.;
+  std::vector<unsigned int> node_size = {4, 5};
+  MKuramotoSakaguchiSystem mkur(omega, eps, node_size);
+  dt = 0.01;
+  N_transient = 1e3;
+  N_mean = 100;
+  std::vector<double> average_frequency_phase;
+  std::vector<double> average_frequency_network;
+  std::vector<std::vector<double> > mean_field_0 = mkur.CalculateMeanField();
+  mkur.Integrate(dt, N_mean,
+      AverageFrequencyMeanFieldPhaseAndPhaseObserver<MKuramotoSakaguchiSystem,
+      std::vector<double>, std::vector<std::vector<double> >
+      >(mkur, dt, average_frequency_phase, average_frequency_network));
+  std::vector<std::vector<double> > mean_field_1 = mkur.CalculateMeanField();
+  std::vector<double> result;
+  result.push_back((mean_field_1[0][1] - mean_field_0[0][1])/(dt*N_mean));
+  result.push_back((mean_field_1[1][1] - mean_field_0[1][1])/(dt*N_mean));
+  BOOST_TEST(average_frequency_network.size() == 2);
+  BOOST_CHECK_CLOSE_FRACTION(average_frequency_network[0], result[0], 0.1);
+  BOOST_CHECK_CLOSE_FRACTION(average_frequency_network[1], result[1], 0.1);
+
 }

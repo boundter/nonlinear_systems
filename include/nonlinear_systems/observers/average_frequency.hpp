@@ -191,7 +191,7 @@ class AverageFrequencyMeanFieldPhaseAndPhaseObserver {
         const mean_field_type& mean_field_one_before,
         const mean_field_type& mean_field_two_before,
         double dt, state_type& average_frequency_phase,
-        mean_field_type& average_frequency_mean_field) {
+        state_type& average_frequency_mean_field) {
       InitializePointers(system, one_step_before, two_steps_before, 
           mean_field_one_before, mean_field_two_before, dt, 
           average_frequency_phase, average_frequency_mean_field);
@@ -199,7 +199,7 @@ class AverageFrequencyMeanFieldPhaseAndPhaseObserver {
 
     AverageFrequencyMeanFieldPhaseAndPhaseObserver(system_type& system,
         double dt, state_type& average_frequency_phase,
-        mean_field_type& average_frequency_mean_field) {
+        state_type& average_frequency_mean_field) {
       state_type two_steps_before = system.GetPosition();
       mean_field_type mean_field_two_before = system.CalculateMeanField();
       system.Integrate(dt, 1);
