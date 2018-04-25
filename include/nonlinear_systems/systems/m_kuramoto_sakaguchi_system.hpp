@@ -14,10 +14,26 @@ typedef std::vector<state_type> network_stype;
 typedef std::vector<unsigned int> node_size_type;
 
 namespace nonlinear_systems {
+/*!
+ * The M-Kuramoto-Sakaguchi ODE describes M groups of Kuramoto-Sakaguchi
+ * oscillators, where each group can have a different coupling and phase shift.
+ * The ODE for an oscillator reads
+ * \f[ \dot{\varphi}_i^{\sigma} = \omega_i + \sum_{\sigma' = 1}^M
+ * \frac{K_{\sigma\sigma'}}{N} \sum_{j=1}^{N_{\sigma'}} 
+ * \sin(\varphi_j^{\sigma'} - \varphi_i^{\sigma} + \alpha_{\sigma\sigma'}) \f]
+ */
 class MKuramotoSakaguchiSystem
   : public GenericNetwork<MKuramotoSakaguchiODE, double> {
   public:
 
+    /*!
+     * @param frequency flattened representation of the oscillators natural
+     * frequency.
+     * @param coupling matrix of the coupling between groups.
+     * @param phase_shift matrix of the phase shift between groups.
+     * @param node_size the size of the groups/nodes.
+     * @param seed the seed used for the internal random number generator.
+     */
     MKuramotoSakaguchiSystem(const state_type& frequency, 
         const network_type& coupling, const network_type& phase_shift,
         const node_size_type& node_size, unsigned int seed=123456789)
@@ -33,6 +49,19 @@ class MKuramotoSakaguchiSystem
     }
 
 
+    /*!
+     * A simplified constructor for a system of two groups of identical
+     * oscillators without phase shift, where the only depends on the acting
+     * group, so \f$ K_{\sigma\sigma'} = K_{\sigma'} \f$. The system can be
+     * rotated, so that the first group has no natural frequency, and the time
+     * scaled so that the first group has a coupling strength of 1. This way the
+     * system can be parametrized by two numbers.
+     *
+     * @param frequency the natural frequency of the second group.
+     * @param repulsive_excess the repulsive excess \f$ \varepsilon = -(1+K_2) \f$.
+     * @param node_size the size of the groups/nodes.
+     * @param seed the seed for the internal random number generator.
+     */
     MKuramotoSakaguchiSystem(double frequency, double repulsive_excess,
         const node_size_type& node_size, unsigned int seed=123456789)
       :GenericNetwork<MKuramotoSakaguchiODE, double>(node_size, 1) {
@@ -54,6 +83,9 @@ class MKuramotoSakaguchiSystem
     }
 
 
+    /*!
+     *  Distributes the phases uniform randomly along the unit circle.
+     */
     void SetRandomUniformState() {
       std::uniform_real_distribution<double> uniform(-M_PI, M_PI);
       std::function<double()> uniform_dist = std::bind(uniform, std::ref(_rng));
@@ -62,11 +94,23 @@ class MKuramotoSakaguchiSystem
     }
 
 
+    /*!
+     *  Calculates the mean field for the seperate groups. The first index gives
+     *  the group number and the second one the quantity; 0 is the order
+     *  parameter and 1 the phase.
+     */
     network_type CalculateMeanField() {
       return this->_ode->CalculateMeanField(this->_x);
     }
 
 
+    /*!
+     *  Calculates the generalized mean fields/ fourier coefficients. The format
+     *  is like for the mean field.
+     *
+     *  @param fourier_number the number of the generlaized mean field to
+     *  calculate.
+     */
     network_type CalculateGeneralizedMeanField(int fourier_number) {
       state_type new_state(this->_x.size());
       for (size_t i = 0; i < new_state.size(); ++i) {
@@ -76,6 +120,15 @@ class MKuramotoSakaguchiSystem
     }
 
 
+    // TODO: This should be 3-dimensional, \sigma, \sigma', complex number
+    /*!
+     *  The forcing generalizes the mean field for the M-Kuramoto-Sakaguchi
+     *  system. With it the differential equation can be reduced. The forcing is 
+     *  \f[ H_{\sigma\sigma'} = \sum_{\sigma'} K_{\sigma\sigma'} 
+     *  \frac{N_\sigma'}{N} Z_{\sigma'}e^{i\alpha_{\sigma\sigma'}}. \f]
+     *
+     *  This seems to be wrong right now.
+     */
     network_type CalculateForcing() {
       network_type forcing(_node_size.size());
       network_type mean_field = CalculateMeanField();
