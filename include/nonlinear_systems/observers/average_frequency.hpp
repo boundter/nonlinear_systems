@@ -122,6 +122,10 @@ class AverageFrequencyObserver {
 };
 
 
+// TODO: Refactor in speerate file
+// This helper class allows the extraction of the mean field for the calculation
+// of the average frequency, this way one observer can handle both general
+// systems and networks.
 template <typename mean_field_type>
 class MeanFieldHelper {
   public:
@@ -133,6 +137,8 @@ class MeanFieldHelper {
     };
 };
 
+
+// Template specialization for networks.
 template<> std::vector<double> MeanFieldHelper<std::vector<std::vector<double> > >
 ::GetMeanFieldPhase(const std::vector<std::vector<double> >& mean_field) {
   std::vector<double> phase;
@@ -144,12 +150,29 @@ template<> std::vector<double> MeanFieldHelper<std::vector<std::vector<double> >
 
 
 // TODO: Add tests for network
+/*!
+ * This observer measures the average frequency of the mean field of a system of
+ * phase oscillators.  It can be used for general systems as well as networks,
+ * but the timestep has to be constant.
+ */
 template<typename system_type, typename state_type = std::vector<double>,
   typename mean_field_type = state_type>
 class AverageFrequencyMeanFieldPhaseObserver {
   public:
     system_type& _system;
 
+    /*!
+     *  @param system the system that will be measured, this is needed to get
+     *  the mean field. It needs to have a member CalculateMeanField that
+     *  returns a state_type.
+     *  @param one_step_before the mean field one timestep before the
+     *  integration.
+     *  @param two_steps_before the mean field two timesteps before the
+     *  integration.
+     *  @param dt the timestep of the integration
+     *  @param average_frequency the container, in which the frequency will be
+     *  saved.
+     */
     AverageFrequencyMeanFieldPhaseObserver(system_type& system, 
         const mean_field_type& one_step_before, 
         const mean_field_type& two_steps_before, double dt, 
@@ -182,11 +205,37 @@ class AverageFrequencyMeanFieldPhaseObserver {
     }
 };
 
+
+/*!
+ * This observer measures the average frequency of the oscillators and the mean
+ * field of a system of phase oscillators. It can be used for general systems as
+ * well as networks. This observer is a wrapper around
+ * AverageFrequencyPhaseObserver and AverageFrequencyMeanFieldPhaseObserver.
+ */
 template<typename system_type, typename state_type = std::vector<double>, 
   typename mean_field_type = state_type>
 class AverageFrequencyMeanFieldPhaseAndPhaseObserver {
   public:
     
+    /*!
+     *  Detailed constructor, where the user provides the state before the begin
+     *  of integration.
+     *
+     *  @param system the system that will be integrated.
+     *  @param one_step_before the system state one timestep before the
+     *  integration.
+     *  @param two_steps_before the system state two timesteps before the
+     *  integration.
+     *  @param mean_field_one_before the mean field one timestep before the
+     *  integration.
+     *  @param mean_field_two_before the mean field two timesteps before the
+     *  integration.
+     *  @param dt the timestep of the integration
+     *  @param average_frequency_phase the container for the average frequency
+     *  of the oscillators.
+     *  @param average_frequency_mean_field the container for the average
+     *  frequency of the oscillators.
+     */
     AverageFrequencyMeanFieldPhaseAndPhaseObserver(system_type& system,
         const state_type& one_step_before, const state_type& two_steps_before,
         const mean_field_type& mean_field_one_before,
@@ -198,6 +247,19 @@ class AverageFrequencyMeanFieldPhaseAndPhaseObserver {
           average_frequency_phase, average_frequency_mean_field);
     }
 
+
+    /*!
+     *  A simpler constructor where the system is integrated internally for two
+     *  timesteps to get the necessary data for the calculation of the average
+     *  frequency.
+     *
+     *  @param system the system that will be integrated.
+     *  @param dt the timestep of the integration
+     *  @param average_frequency_phase the container for the average frequency
+     *  of the oscillators.
+     *  @param average_frequency_mean_field the container for the average
+     *  frequency of the oscillators.
+     */
     AverageFrequencyMeanFieldPhaseAndPhaseObserver(system_type& system,
         double dt, state_type& average_frequency_phase,
         state_type& average_frequency_mean_field) {
@@ -225,6 +287,7 @@ class AverageFrequencyMeanFieldPhaseAndPhaseObserver {
       _mean_field_observer;
     std::shared_ptr<AverageFrequencyPhaseObserver<state_type> > _phase_observer;
 
+    // This is refactored from the constructors
     void InitializePointers(system_type& system,
         const state_type& one_step_before, const state_type& two_steps_before,
         const mean_field_type& mean_field_one_before,
