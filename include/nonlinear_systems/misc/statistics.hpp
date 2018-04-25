@@ -5,7 +5,9 @@
 
 
 namespace nonlinear_systems{
-
+/*!
+ *  Sample a given distribution.
+ */
 template<typename state_type=std::vector<double>,typename preci=double>
 state_type SampleDistribution(size_t number_samples, 
     std::function<preci()>* distribution) {
