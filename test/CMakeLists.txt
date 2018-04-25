@@ -2,7 +2,8 @@ if(NL_BUILD_TESTS)
 
   set(CMAKE_BUILD_TYPE Debug)
   
-  set(sources 
+  set(sources
+    test_coordinates.cpp
     test_generic_system.cpp 
     test_rayleigh_mean_field.cpp
     test_observers.cpp
