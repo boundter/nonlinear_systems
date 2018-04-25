@@ -152,7 +152,7 @@ BOOST_AUTO_TEST_CASE(test_system_default_constructor) {
 
   std::mt19937_64 rng(123456789);
   std::uniform_real_distribution<double> uniform(-M_PI, M_PI);
-  state_type phases = system.GetState();
+  state_type phases = system.GetPosition();
   for (size_t i = 0; i < 5; ++i) {
     BOOST_CHECK_CLOSE_FRACTION(phases[i], uniform(rng), 0.01);
   }
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE(test_system_2_constructor) {
 
   std::mt19937_64 rng(123456789);
   std::uniform_real_distribution<double> uniform(-M_PI, M_PI);
-  state_type phases = system.GetState();
+  state_type phases = system.GetPosition();
   for (size_t i = 0; i < 9; ++i) {
     BOOST_CHECK_CLOSE_FRACTION(phases[i], uniform(rng), 0.01);
   }

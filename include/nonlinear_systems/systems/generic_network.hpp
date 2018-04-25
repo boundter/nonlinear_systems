@@ -57,7 +57,7 @@ class GenericNetwork: protected GenericSystem<ode_type,
      * Gets the state in a flattened representation of the from 
      * state = {node_1x_1, node_1x_2, ..., node_2x_1, ....}.
      */
-    state_type GetState() {
+    state_type GetPosition() {
       return GenericSystem<ode_type, state_type, stepper_type>::GetPosition();
     }
 

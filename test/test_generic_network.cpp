@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(test_conversion_state_matrix) {
   BOOST_CHECK_NO_THROW(network.SetState(x));
   
   // state was correctly set
-  std::vector<int> state = network.GetState();
+  std::vector<int> state = network.GetPosition();
   BOOST_TEST(state == x);
   
   // correct node indices
@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(test_integrate) {
   double sin_2 = sin(2*dt*steps_increase);
   double cos_2 = cos(2*dt*steps_increase);
   state_type final_state = {sin_1, cos_1, 1/2.*sin_2, cos_2};
-  state_type state = network.GetState();
+  state_type state = network.GetPosition();
   for (size_t i = 0; i < final_state.size(); ++i) {
     BOOST_CHECK_CLOSE(final_state[i], state[i], 0.01);
   }
