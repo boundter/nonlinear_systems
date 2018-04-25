@@ -42,6 +42,7 @@ class AverageFrequencyPhaseObserver {
 
     // TODO: Refactor moving average
     // TODO: Refactor numerical differentiation
+    // TODO: unwrapping is only done for 2pi, add more possibilities
     // the differentiation uses the middlepoint method; the numerical derivative
     // x' at the timepoint n with timestep dt is:
     // x'[n] = (x[n+1] - x[n-1])/(2*dt)
