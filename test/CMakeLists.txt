@@ -6,6 +6,7 @@ if(NL_BUILD_TESTS)
     test_coordinates.cpp
     test_statistics.cpp
     test_harmonic_oscillator_ode.cpp
+    test_m_kuramoto_sakaguchi_ode.cpp
     test_generic_system.cpp 
     test_rayleigh_mean_field.cpp
     test_observers.cpp
