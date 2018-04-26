@@ -65,6 +65,7 @@ class MKuramotoSakaguchiSystem
     MKuramotoSakaguchiSystem(double frequency, double repulsive_excess,
         const node_size_type& node_size, unsigned int seed=123456789)
       :GenericNetwork<MKuramotoSakaguchiODE, double>(node_size, 1) {
+      _node_size = node_size;
       _rng.seed(seed); 
       SetRandomUniformState();
       state_type frequency_vector(this->_node_indices.back());

@@ -272,4 +272,18 @@ BOOST_AUTO_TEST_CASE(SetPerturbedClusters) {
   BOOST_CHECK_CLOSE_FRACTION(x_3[4], clusters_3[4], 0.01);
   BOOST_CHECK_CLOSE_FRACTION(x_3[5], clusters_3[5], 0.01);
   BOOST_CHECK_CLOSE_FRACTION(x_3[6], clusters_3[6], 0.01);
+  
+  
+  node_size_type node_size = {3, 2};
+
+  MKuramotoSakaguchiSystem system(1., 0., node_size);
+  system.SetPerturbedClusters(0.5, M_PI);
+  state_type x = system.GetPosition();
+  state_type clusters = {-0.25, 0., 0.25, M_PI-0.25, M_PI+0.25};
+  BOOST_TEST(x.size() == clusters.size());
+  BOOST_CHECK_CLOSE_FRACTION(x[0], clusters[0], 0.01);
+  BOOST_CHECK_SMALL(x[1], 0.01);
+  BOOST_CHECK_CLOSE_FRACTION(x[2], clusters[2], 0.01);
+  BOOST_CHECK_CLOSE_FRACTION(x[3], clusters[3], 0.01);
+  BOOST_CHECK_CLOSE_FRACTION(x[4], clusters[4], 0.01);
 }
