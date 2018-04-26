@@ -3,6 +3,7 @@ if(NL_BUILD_TESTS)
   set(CMAKE_BUILD_TYPE Debug)
   
   set(sources
+    test_harmonic_oscillator_ode.cpp
     test_coordinates.cpp
     test_generic_system.cpp 
     test_rayleigh_mean_field.cpp
