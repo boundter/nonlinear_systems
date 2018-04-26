@@ -95,6 +95,33 @@ class MKuramotoSakaguchiSystem
 
 
     /*!
+     *  Distributes the phases around clusters. Careful: If
+     *  clustre_distance*number_clusters > 2*pi the clusters will be wrapped
+     *  around!
+     *
+     *  @param cluster_width the width of every single cluster, oscillators will
+     *  be placed with uniform distance to eachother.
+     *  @param cluster_distance the distance between clusters.
+     */
+    void SetPerturbedClusters(double cluster_width, double cluster_distance) {
+      size_t number_clusters = _node_size.size();
+      state_type cluster_position;
+      for (size_t i = 0; i < number_clusters; ++i) {
+        cluster_position.push_back(i*cluster_distance);
+      }
+      for (size_t i = 0; i < this->_node_indices.size() - 1; ++i) {
+        double distance_between_oscillators = 
+          cluster_width/(static_cast<double>(_node_size[i]) - 1.);
+        for (unsigned int j = this->_node_indices[i]; 
+            j < this->_node_indices[i+1]; ++j) {
+          this->_x[j] = cluster_position[i] - cluster_width/2. 
+            + distance_between_oscillators*(j - this->_node_indices[i]);
+        }
+      }
+    }
+
+
+    /*!
      *  Calculates the mean field for the seperate groups. The first index gives
      *  the group number and the second one the quantity; 0 is the order
      *  parameter and 1 the phase.

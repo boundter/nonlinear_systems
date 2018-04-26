@@ -234,3 +234,42 @@ BOOST_AUTO_TEST_CASE(test_system_forcing) {
   BOOST_CHECK_CLOSE(measured[1][0], forcing_2[0], 0.01);
   BOOST_CHECK_CLOSE(measured[1][1], forcing_2[1], 0.01);
 }
+
+
+BOOST_AUTO_TEST_CASE(SetPerturbedClusters) {
+  node_size_type node_size_2 = {3, 2};
+  state_type freq_2(5);
+  state_type zero_vector_2(2, 0.);
+  network_type phase_shift_2(2, zero_vector_2);
+  network_type coupling_2(2, zero_vector_2);
+
+  MKuramotoSakaguchiSystem system_2(freq_2, coupling_2, phase_shift_2, node_size_2);
+  system_2.SetPerturbedClusters(0.5, M_PI);
+  state_type x_2 = system_2.GetPosition();
+  state_type clusters_2 = {-0.25, 0., 0.25, M_PI-0.25, M_PI+0.25};
+  BOOST_TEST(x_2.size() == clusters_2.size());
+  BOOST_CHECK_CLOSE_FRACTION(x_2[0], clusters_2[0], 0.01);
+  BOOST_CHECK_SMALL(x_2[1], 0.01);
+  BOOST_CHECK_CLOSE_FRACTION(x_2[2], clusters_2[2], 0.01);
+  BOOST_CHECK_CLOSE_FRACTION(x_2[3], clusters_2[3], 0.01);
+  BOOST_CHECK_CLOSE_FRACTION(x_2[4], clusters_2[4], 0.01);
+  
+  node_size_type node_size_3 = {3, 2, 2};
+  state_type freq_3(7);
+  state_type zero_vector_3(3, 0.);
+  network_type phase_shift_3(3, zero_vector_3);
+  network_type coupling_3(3, zero_vector_3);
+
+  MKuramotoSakaguchiSystem system_3(freq_3, coupling_3, phase_shift_3, node_size_3);
+  system_3.SetPerturbedClusters(0.5, M_PI/2.);
+  state_type x_3 = system_3.GetPosition();
+  state_type clusters_3 = {-0.25, 0., 0.25, M_PI/2.-0.25, M_PI/2.+0.25, M_PI-0.25, M_PI+0.25};
+  BOOST_TEST(x_3.size() == clusters_3.size());
+  BOOST_CHECK_CLOSE_FRACTION(x_3[0], clusters_3[0], 0.01);
+  BOOST_CHECK_SMALL(x_3[1], 0.01);
+  BOOST_CHECK_CLOSE_FRACTION(x_3[2], clusters_3[2], 0.01);
+  BOOST_CHECK_CLOSE_FRACTION(x_3[3], clusters_3[3], 0.01);
+  BOOST_CHECK_CLOSE_FRACTION(x_3[4], clusters_3[4], 0.01);
+  BOOST_CHECK_CLOSE_FRACTION(x_3[5], clusters_3[5], 0.01);
+  BOOST_CHECK_CLOSE_FRACTION(x_3[6], clusters_3[6], 0.01);
+}
