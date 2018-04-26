@@ -15,6 +15,10 @@
 // TODO: Add method to integrate to specific phase
 // TODO: Add method to measure period over time
 namespace nonlinear_systems {
+/*!
+ * A wrapper for ODEs. It is especially useful for integrating coupled
+ * differential equations.
+ */
 template<typename GenericODE,
   typename state_type = std::vector<double>,
   typename stepper_type = boost::numeric::odeint::runge_kutta4<state_type> >
