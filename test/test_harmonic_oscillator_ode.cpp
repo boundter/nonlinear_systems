@@ -1,6 +1,7 @@
 #define BOOST_TEST_MODULE HarmonicOscillatorODE
 #include <boost/test/included/unit_test.hpp>
 #include <vector>
+#include <memory>
 #include <nonlinear_systems/odes/harmonic_oscillator_ode.hpp>
 
 typedef std::vector<double> state_type;
@@ -15,9 +16,9 @@ struct F {
         new HarmonicOscillatorODE(params));
   }
   
-  ~F(){;}
+  ~F() {;}
 
-  double* params;
+  double params[1];
   std::unique_ptr<HarmonicOscillatorODE> ode;
 };
 
