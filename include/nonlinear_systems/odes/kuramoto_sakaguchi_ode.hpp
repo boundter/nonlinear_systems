@@ -8,8 +8,11 @@
 typedef std::vector<double> state_type;
 
 namespace nonlinear_systems {
-// TODO: test
-// TODO: document
+/*!
+ *  ODE for the Kuramoto-Sakaguchi model. It reads
+ * /f[ \dot{\varphi}_i = \omega_i + \frac{K}{N} \sum_{j=1}^{N} \sin(\varphi_j -
+ * \varphi_i + \alpha). /f]
+ */
 class KuramotoSakaguchiODE {
   public:
     unsigned int _N;
@@ -17,6 +20,12 @@ class KuramotoSakaguchiODE {
     double _coupling;
     double _phase_shift;
 
+    /*!
+     *  @param N number of oscillators.
+     *  @param frequency the natural frequency of the oscillators.
+     *  @param coupling the coupling constant.
+     *  @param phase_shift the phase shift of the ode.
+     */
     KuramotoSakaguchiODE(unsigned int N, state_type frequency, double coupling, 
         double phase_shift)
    :_N(N), _frequency(frequency), _coupling(coupling), _phase_shift(phase_shift) {
@@ -25,7 +34,8 @@ class KuramotoSakaguchiODE {
       }
     }
 
-
+    // solves the integration with the mean field the new ODE reads
+    // \dot{\varphi}_i = \omega_i + R*K\sin(\Psi - \varphi_i + \alpha)
     void operator()(const state_type& x, state_type& dx, double t) {
       state_type mean_field = CalculateMeanField(x);
       for (unsigned int i = 0; i < _N; ++i) {
@@ -34,7 +44,10 @@ class KuramotoSakaguchiODE {
       }
     }
 
-
+    /*!
+     *  Returns the mean field \f$ Z = R e^{i\Psi} \f$ as a vector of the form
+     *  {R, Psi}. 
+     */
     state_type CalculateMeanField(const state_type& x) {
       state_type mean_field(2);
       double re = 0., im = 0.;
