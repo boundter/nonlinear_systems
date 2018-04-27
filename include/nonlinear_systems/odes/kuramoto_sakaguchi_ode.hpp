@@ -30,7 +30,7 @@ class KuramotoSakaguchiODE {
       state_type mean_field = CalculateMeanField(x);
       for (unsigned int i = 0; i < _N; ++i) {
         dx[i] = _frequency[i] + _coupling*mean_field[0]
-                                *sin(mean_field[1] - x[i] + phase_shift);
+                                *sin(mean_field[1] - x[i] + _phase_shift);
       }
     }
 
@@ -46,6 +46,7 @@ class KuramotoSakaguchiODE {
       im /= static_cast<double>(_N);
       mean_field[0] = sqrt(re*re + im*im);
       mean_field[1] = atan2(im, re);
+      return mean_field;
     }
 };
 } // nonlinear_systems
