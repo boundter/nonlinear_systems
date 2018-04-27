@@ -65,6 +65,6 @@ BOOST_FIXTURE_TEST_CASE(integration, F) {
   ode->operator()(x, dx, 0.);
   BOOST_REQUIRE_EQUAL(dx.size(), analytical.size());
   BOOST_CHECK_CLOSE(dx[0], analytical[0], 0.1);
-  BOOST_CHECK_CLOSE(dx[0], analytical[0], 0.1);
-  BOOST_CHECK_CLOSE(dx[0], analytical[0], 0.1);
+  BOOST_CHECK_CLOSE(dx[1], analytical[1], 0.1);
+  BOOST_CHECK_CLOSE(dx[2], analytical[2], 0.1);
 }
