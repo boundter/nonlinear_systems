@@ -2,6 +2,7 @@
 #define __KURAMOTO_SAKAGUCHI_ODE__
 
 #include <cmath>
+#include <stdexcept>
 #include <vector>
 
 typedef std::vector<double> state_type;
@@ -19,8 +20,9 @@ class KuramotoSakaguchiODE {
     KuramotoSakaguchiODE(unsigned int N, state_type frequency, double coupling, 
         double phase_shift)
    :_N(N), _frequency(frequency), _coupling(coupling), _phase_shift(phase_shift) {
-      // TODO: Check length
-      ;
+      if (_frequency.size() != _N) {
+        throw std::length_error("Length of frequency vector and system size N do not match.");
+      }
     }
 
 
