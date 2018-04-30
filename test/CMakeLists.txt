@@ -3,17 +3,22 @@ if(NL_BUILD_TESTS)
   set(CMAKE_BUILD_TYPE Debug)
   
   set(sources
+    # misc
     test_coordinates.cpp
     test_statistics.cpp
+    # odes
     test_harmonic_oscillator_ode.cpp
     test_kuramoto_sakaguchi_ode.cpp
     test_rayleigh_mean_field_ode.cpp
     test_m_kuramoto_sakaguchi_ode.cpp
+    # frameworks
     test_generic_system.cpp 
     test_generic_network.cpp
+    # systems
     test_rayleigh_mean_field.cpp
-    test_observers.cpp
-    test_m_kuramoto.cpp)
+    test_m_kuramoto.cpp
+    # dependent stuff
+    test_observers.cpp)
   
   
   foreach (sourcefile ${sources})
