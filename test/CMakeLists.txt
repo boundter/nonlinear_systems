@@ -20,7 +20,7 @@ if(NL_BUILD_TESTS)
     test_rayleigh_mean_field.cpp
     test_m_kuramoto.cpp
     # dependent stuff
-    test_observers.cpp)
+    test_average_frequency_observer.cpp)
   
   
   foreach (sourcefile ${sources})
