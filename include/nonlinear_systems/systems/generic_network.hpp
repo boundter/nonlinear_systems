@@ -40,7 +40,8 @@ class GenericNetwork: protected GenericSystem<ode_type,
       : GenericSystem<ode_type, state_type, stepper_type>(0, dimension, 
           parameters) {
         _node_indices = CalculateNodeIndices(node_sizes);
-        this->Resize(_node_indices.back());
+        _node_sizes = node_sizes;
+        this->Resize(CalculateNumberOscillators(_node_sizes));
     }
 
 
@@ -126,10 +127,10 @@ class GenericNetwork: protected GenericSystem<ode_type,
       matrix_type mean_field;
       for (size_t i = 0; i < _node_indices.size() - 1; ++i) {
         mean_field.push_back(state_type(this->_d));
-        unsigned int number_oscillators = _node_indices[i+1] - _node_indices[i];
+        unsigned int number_oscillators = _node_sizes[i];
         for (unsigned int k = 0; k < this->_d; ++k) {
-          for (unsigned int j = this->_d*_node_indices[i] + k; 
-              j < this->_d*_node_indices[i+1]; j += this->_d) {
+          for (unsigned int j = this->_node_indices[i] + k; 
+              j < this->_node_indices[i+1]; j += this->_d) {
             mean_field.back()[k] += this->_x[j];
           }
           mean_field.back()[k] /= static_cast<double>(number_oscillators);
@@ -140,6 +141,7 @@ class GenericNetwork: protected GenericSystem<ode_type,
 
   protected:
     node_size_type _node_indices;
+    node_size_type _node_sizes;
     
     /*!
      * The network is initialized to a zero state, without initializing the ode.
@@ -150,7 +152,8 @@ class GenericNetwork: protected GenericSystem<ode_type,
     GenericNetwork(node_size_type node_sizes, unsigned int dimension)
       : GenericSystem<ode_type, state_type, stepper_type>(0, dimension) {
         _node_indices = CalculateNodeIndices(node_sizes);
-        this->Resize(_node_indices.back());
+        _node_sizes = node_sizes;
+        this->Resize(CalculateNumberOscillators(_node_sizes));
       }
 
 
@@ -158,10 +161,19 @@ class GenericNetwork: protected GenericSystem<ode_type,
       node_size_type node_indices = {0};
       unsigned int offset = 0;;
       for (size_t i = 0; i < node_sizes.size(); ++i) {
-        node_indices.push_back(offset + node_sizes[i]);
-        offset += node_sizes[i];
+        node_indices.push_back(offset + node_sizes[i]*this->_d);
+        offset += node_sizes[i]*this->_d;
       }
       return node_indices;
+    }
+
+
+    unsigned int CalculateNumberOscillators(const node_size_type& node_sizes) {
+      unsigned int N = 0;
+      for (size_t i = 0; i < node_sizes.size(); ++i) {
+        N += node_sizes[i];
+      }
+      return N;
     }
 };
 } // nonlinear_systems

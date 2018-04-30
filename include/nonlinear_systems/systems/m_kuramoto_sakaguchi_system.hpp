@@ -42,7 +42,6 @@ class MKuramotoSakaguchiSystem
       SetRandomUniformState();
       _coupling = coupling;
       _phase_shift = phase_shift;
-      _node_size = node_size;
       this->_ode = std::unique_ptr<MKuramotoSakaguchiODE>(
           new MKuramotoSakaguchiODE(frequency, _coupling, _phase_shift, 
             this->_node_indices));
@@ -65,7 +64,6 @@ class MKuramotoSakaguchiSystem
     MKuramotoSakaguchiSystem(double frequency, double repulsive_excess,
         const node_size_type& node_size, unsigned int seed=123456789)
       :GenericNetwork<MKuramotoSakaguchiODE, double>(node_size, 1) {
-      _node_size = node_size;
       _rng.seed(seed); 
       SetRandomUniformState();
       state_type frequency_vector(this->_node_indices.back());
@@ -105,14 +103,14 @@ class MKuramotoSakaguchiSystem
      *  @param cluster_distance the distance between clusters.
      */
     void SetPerturbedClusters(double cluster_width, double cluster_distance) {
-      size_t number_clusters = _node_size.size();
+      size_t number_clusters = this->_node_sizes.size();
       state_type cluster_position;
       for (size_t i = 0; i < number_clusters; ++i) {
         cluster_position.push_back(i*cluster_distance);
       }
       for (size_t i = 0; i < this->_node_indices.size() - 1; ++i) {
         double distance_between_oscillators = 
-          cluster_width/(static_cast<double>(_node_size[i]) - 1.);
+          cluster_width/(static_cast<double>(this->_node_sizes[i]) - 1.);
         for (unsigned int j = this->_node_indices[i]; 
             j < this->_node_indices[i+1]; ++j) {
           this->_x[j] = cluster_position[i] - cluster_width/2. 
@@ -158,12 +156,12 @@ class MKuramotoSakaguchiSystem
      *  This seems to be wrong right now.
      */
     network_type CalculateForcing() {
-      network_type forcing(_node_size.size());
+      network_type forcing(this->_node_sizes.size());
       network_type mean_field = CalculateMeanField();
       for (size_t i = 0; i < forcing.size(); ++i) {
         double real_part = 0., imag_part = 0.;
-        for (size_t j = 0; j < _node_size.size(); ++j) {
-          double coupling_part = _coupling[i][j]*_node_size[j]
+        for (size_t j = 0; j < this->_node_sizes.size(); ++j) {
+          double coupling_part = _coupling[i][j]*this->_node_sizes[j]
             /this->_node_indices.back()*mean_field[j][0];
           real_part += coupling_part*cos(mean_field[j][1]+_phase_shift[i][j]);
           imag_part += coupling_part*sin(mean_field[j][1]+_phase_shift[i][j]);
@@ -178,8 +176,6 @@ class MKuramotoSakaguchiSystem
   protected:
     std::mt19937_64 _rng;
     network_type _coupling, _phase_shift;
-    node_size_type _node_size;
-    
 };
 } // nonlinear_systems
 #endif
