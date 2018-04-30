@@ -4,7 +4,6 @@
 #include <vector>
 
 namespace nonlinear_systems{
-// TODO: test
 /*!
  *  Observe s the position of the system and saves it together with the time.
  */

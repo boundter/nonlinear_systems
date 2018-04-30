@@ -6,6 +6,8 @@ if(NL_BUILD_TESTS)
     # misc
     test_coordinates.cpp
     test_statistics.cpp
+    # observers
+    test_position_observer.cpp
     # odes
     test_harmonic_oscillator_ode.cpp
     test_kuramoto_sakaguchi_ode.cpp
