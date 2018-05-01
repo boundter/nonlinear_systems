@@ -18,7 +18,7 @@ if(NL_BUILD_TESTS)
     test_generic_network.cpp
     # systems
     test_m_kuramoto_sakaguchi_system.cpp
-    test_rayleigh_mean_field.cpp
+    test_rayleigh_mean_field_system.cpp
     # dependent stuff
     test_average_frequency_observer.cpp)
   
