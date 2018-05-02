@@ -49,8 +49,9 @@ class GenericNetwork: protected GenericSystem<ode_type,
      * Sets the state of the system using a flattened representation of the form
      * state = {node_1x_1, node_1x_2, ..., node_2x_1, ....}.
      */
-    void SetState(const state_type& new_state) {
-      this->SetPosition(new_state);
+    void SetPosition(const state_type& new_state) {
+      GenericSystem<ode_type, std::vector<precision_type>, 
+      stepper_type>::SetPosition(new_state);
     }
  
 
@@ -59,7 +60,8 @@ class GenericNetwork: protected GenericSystem<ode_type,
      * state = {node_1x_1, node_1x_2, ..., node_2x_1, ....}.
      */
     state_type GetPosition() {
-      return GenericSystem<ode_type, state_type, stepper_type>::GetPosition();
+      return GenericSystem<ode_type, std::vector<precision_type>, 
+             stepper_type>::GetPosition();
     }
 
 

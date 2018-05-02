@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(mean_field) {
                   -0.5, -0.3, 1.2, 1.5, 2};
   state_type mean_field_1 = {0.2, M_PI/2};
   state_type mean_field_2 = {0.554315, 0.84};
-  system.SetState(x);
+  system.SetPosition(x);
   network_type measured = system.CalculateMeanField();
   BOOST_REQUIRE_EQUAL(measured.size(), 2);
   BOOST_REQUIRE_EQUAL(measured[0].size(), 2);
@@ -161,7 +161,7 @@ BOOST_AUTO_TEST_CASE(mean_field) {
 BOOST_FIXTURE_TEST_CASE(forcing, F) {
   MKuramotoSakaguchiSystem system(frequency, coupling, phase_shift, node_size);
   state_type x = {0., M_PI/2., M_PI/2., M_PI};
-  system.SetState(x);
+  system.SetPosition(x);
   state_type forcing_1 = {0.175814, 2.161817171};
   state_type forcing_2 = {0.200289, 1.715838424};
   network_type measured = system.CalculateForcing();

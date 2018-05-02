@@ -47,7 +47,7 @@ struct F {
 BOOST_FIXTURE_TEST_CASE(conversion_state, F) {
   // set a new state of the correct length
   state_type x = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  BOOST_CHECK_NO_THROW(network->SetState(x));
+  BOOST_CHECK_NO_THROW(network->SetPosition(x));
   
   // state was correctly set
   state_type state = network->GetPosition();
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(integrate) {
   double dt = 0.01;
   unsigned int steps_increase = 100;
   state_type x = {0., 1., 0., 1.};
-  network.SetState(x);
+  network.SetPosition(x);
 
   // Integrate increases time correctly
   double t0 = network.GetTime();
@@ -127,7 +127,7 @@ BOOST_FIXTURE_TEST_CASE(mean_field, F) {
   state_type state = {1., 3., 2., 4., 3., 5., 1., 3., 2., 4.};
   state_type mean_field_1 = {2., 4.};
   state_type mean_field_2 = {1.5, 3.5};
-  network->SetState(state);
+  network->SetPosition(state);
   network_type mean_field = network->CalculateMeanField();
   BOOST_REQUIRE_EQUAL(mean_field.size(), 2);
   BOOST_REQUIRE_EQUAL(mean_field[0].size(), 2);
@@ -137,3 +137,52 @@ BOOST_FIXTURE_TEST_CASE(mean_field, F) {
   BOOST_CHECK_CLOSE(mean_field[1][0], mean_field_2[0], 0.01);
   BOOST_CHECK_CLOSE(mean_field[1][1], mean_field_2[1], 0.01);
 }
+
+/*
+BOOST_AUTO_TEST_CASE(mean_field_spherical) {
+  node_size_type node_sizes = {3, 2};
+  double  params = 1.;
+  
+  // 1-dimensional;  Harmonic Oscillator is just a dummy
+  GenericNetwork<HarmonicOscillatorODE> network_1(node_sizes, 1, &params);
+  state_type x_1 = {0., M_PI/2., M_PI, 0., M_PI/2.};
+  network_1.SetPosition(x_1);
+  network_type spherical_1 = network_1.CalculateMeanFieldSpherical();
+  BOOST_REQUIRE_EQUAL(spherical_1.size(), 2);
+  BOOST_REQUIRE_EQUAL(spherical_1[0].size(), 2);
+  BOOST_REQUIRE_EQUAL(spherical_1[1].size(), 2);
+  BOOST_CHECK_CLOSE(spherical_1[0][0], 1/3., 0.1);
+  BOOST_CHECK_CLOSE(spherical_1[0][1], M_PI/2., 0.1);
+  BOOST_CHECK_CLOSE(spherical_1[1][0], 0.7071, 0.1);
+  BOOST_CHECK_CLOSE(spherical_1[1][1], M_PI/4., 0.1);
+
+  // 2-dimensional;  Harmonic Oscillator is just a dummy
+  node_sizes = {4, 4};
+  GenericNetwork<HarmonicOscillatorODE> network_2(node_sizes, 2, &params);
+  state_type x_2 = {0., 5., 3., 2., 1., 3., 7., 8., 0., 5., 3., 2., 1., 3., 7., 8.};
+  network_2.SetPosition(x_2);
+  network_type spherical_2 = network_2.CalculateMeanFieldSpherical();
+  BOOST_REQUIRE_EQUAL(spherical_2.size(), 2);
+  BOOST_REQUIRE_EQUAL(spherical_2[0].size(), 2);
+  BOOST_REQUIRE_EQUAL(spherical_2[1].size(), 2);
+  BOOST_CHECK_CLOSE(spherical_2[0][0], 5.27, 0.1);
+  BOOST_CHECK_CLOSE(spherical_2[0][1], 1.0222, 0.1);
+  BOOST_CHECK_CLOSE(spherical_2[1][0], 5.27, 0.1);
+  BOOST_CHECK_CLOSE(spherical_2[1][1], 1.0222., 0.1);
+  
+  // 3-dimensional; ODE will not be used, HarmonicOscillator as dummy
+  node_sizes = {3, 3};
+  GenericNetwork<HarmonicOscillatorODE> network_3(node_sizes, 3, &params);
+  state_type x_3 = {0., 1., 5., 4., 2., 7., 5., 2., 4., 0., 1., 5., 4., 2., 7., 5., 2., 4.};
+  network_3.SetPosition(x_3);
+  network_type spherical_3 = network_3.CalculateMeanFieldSpherical();
+  BOOST_REQUIRE_EQUAL(spherical_3.size(), 2);
+  BOOST_REQUIRE_EQUAL(spherical_3[0].size(), 3);
+  BOOST_REQUIRE_EQUAL(spherical_3[1].size(), 3);
+  BOOST_CHECK_CLOSE(spherical_3[0][0], 6.342, 0.1);
+  BOOST_CHECK_CLOSE(spherical_3[0][1], 1.078, 0.1);
+  BOOST_CHECK_CLOSE(spherical_3[0][2], 1.2679, 0.1);
+  BOOST_CHECK_CLOSE(spherical_3[1][0], 6.342, 0.1);
+  BOOST_CHECK_CLOSE(spherical_3[1][1], 1.078., 0.1);
+  BOOST_CHECK_CLOSE(spherical_3[1][2], 1.2679., 0.1);
+}*/
