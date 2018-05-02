@@ -131,10 +131,12 @@ class MeanFieldHelper {
   public:
 
     std::vector<double> GetMeanFieldPhase(const mean_field_type& mean_field) {
-      std::vector<double> phase; 
-      phase.push_back(mean_field[1]);
+      std::vector<double> phase;
+      for (size_t i = 1; i < mean_field.size(); ++i) {
+        phase.push_back(mean_field[i]);
+      }
       return phase;
-    };
+    }
 };
 
 
@@ -143,13 +145,16 @@ template<> std::vector<double> MeanFieldHelper<std::vector<std::vector<double> >
 ::GetMeanFieldPhase(const std::vector<std::vector<double> >& mean_field) {
   std::vector<double> phase;
   for (unsigned int i = 0; i < mean_field.size(); ++i) {
-    phase.push_back(mean_field[i][1]);
+    for (size_t j = 1; j < mean_field[i].size(); ++j) {
+      phase.push_back(mean_field[i][j]);
+    }
   }
   return phase;
 }
 
 
 // TODO: Add tests for network
+// TODO: Add tests for non-phase oscillators
 /*!
  * This observer measures the average frequency of the mean field of a system of
  * phase oscillators.  It can be used for general systems as well as networks,
@@ -157,7 +162,7 @@ template<> std::vector<double> MeanFieldHelper<std::vector<std::vector<double> >
  */
 template<typename system_type, typename state_type = std::vector<double>,
   typename mean_field_type = state_type>
-class AverageFrequencyMeanFieldPhaseObserver {
+class AverageFrequencyMeanFieldObserver {
   public:
     system_type& _system;
 
@@ -173,7 +178,7 @@ class AverageFrequencyMeanFieldPhaseObserver {
      *  @param average_frequency the container, in which the frequency will be
      *  saved.
      */
-    AverageFrequencyMeanFieldPhaseObserver(system_type& system, 
+    AverageFrequencyMeanFieldObserver(system_type& system, 
         const mean_field_type& one_step_before, 
         const mean_field_type& two_steps_before, double dt, 
         state_type& average_frequency)
@@ -190,7 +195,7 @@ class AverageFrequencyMeanFieldPhaseObserver {
 
 
     void operator()(const state_type& x, double t) {
-      mean_field_type mean_field = _system.CalculateMeanField();
+      mean_field_type mean_field = _system.CalculateMeanFieldSpherical();
       std::vector<double> mean_field_phase = GetMeanFieldPhase(mean_field);
       _phase_observer->operator()(mean_field_phase, t);
     }
@@ -214,7 +219,7 @@ class AverageFrequencyMeanFieldPhaseObserver {
  */
 template<typename system_type, typename state_type = std::vector<double>, 
   typename mean_field_type = state_type>
-class AverageFrequencyMeanFieldPhaseAndPhaseObserver {
+class AverageFrequencyMeanFieldAndPhaseObserver {
   public:
     
     /*!
@@ -236,7 +241,7 @@ class AverageFrequencyMeanFieldPhaseAndPhaseObserver {
      *  @param average_frequency_mean_field the container for the average
      *  frequency of the oscillators.
      */
-    AverageFrequencyMeanFieldPhaseAndPhaseObserver(system_type& system,
+    AverageFrequencyMeanFieldAndPhaseObserver(system_type& system,
         const state_type& one_step_before, const state_type& two_steps_before,
         const mean_field_type& mean_field_one_before,
         const mean_field_type& mean_field_two_before,
@@ -260,14 +265,14 @@ class AverageFrequencyMeanFieldPhaseAndPhaseObserver {
      *  @param average_frequency_mean_field the container for the average
      *  frequency of the oscillators.
      */
-    AverageFrequencyMeanFieldPhaseAndPhaseObserver(system_type& system,
+    AverageFrequencyMeanFieldAndPhaseObserver(system_type& system,
         double dt, state_type& average_frequency_phase,
         state_type& average_frequency_mean_field) {
       state_type two_steps_before = system.GetPosition();
-      mean_field_type mean_field_two_before = system.CalculateMeanField();
+      mean_field_type mean_field_two_before = system.CalculateMeanFieldSpherical();
       system.Integrate(dt, 1);
       state_type one_step_before = system.GetPosition();
-      mean_field_type mean_field_one_before = system.CalculateMeanField();
+      mean_field_type mean_field_one_before = system.CalculateMeanFieldSpherical();
       system.Integrate(dt, 1);
       InitializePointers(system, one_step_before, two_steps_before, 
           mean_field_one_before, mean_field_two_before, dt, 
@@ -282,7 +287,7 @@ class AverageFrequencyMeanFieldPhaseAndPhaseObserver {
 
 
   protected:
-    std::shared_ptr<AverageFrequencyMeanFieldPhaseObserver<system_type, 
+    std::shared_ptr<AverageFrequencyMeanFieldObserver<system_type, 
       state_type, mean_field_type> >
       _mean_field_observer;
     std::shared_ptr<AverageFrequencyPhaseObserver<state_type> > _phase_observer;
@@ -294,9 +299,9 @@ class AverageFrequencyMeanFieldPhaseAndPhaseObserver {
         const mean_field_type& mean_field_two_before,
         double dt, state_type& average_frequency_phase,
         state_type& average_frequency_mean_field) {
-      _mean_field_observer = std::shared_ptr<AverageFrequencyMeanFieldPhaseObserver<
+      _mean_field_observer = std::shared_ptr<AverageFrequencyMeanFieldObserver<
         system_type, state_type, mean_field_type> >(
-            new AverageFrequencyMeanFieldPhaseObserver<
+            new AverageFrequencyMeanFieldObserver<
         system_type, state_type, mean_field_type>(system, mean_field_one_before,
             mean_field_two_before, dt, average_frequency_mean_field));
       _phase_observer = std::shared_ptr<AverageFrequencyPhaseObserver<state_type> >
