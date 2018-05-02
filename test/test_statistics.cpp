@@ -34,3 +34,30 @@ BOOST_FIXTURE_TEST_CASE(SampleUniformRealDistribution, F) {
     BOOST_CHECK_CLOSE(sampled[i], direct[i], 0.01);
   }
 }
+
+
+BOOST_AUTO_TEST_CASE(moving_average) {
+  state_type x_1 = {0., 1.};
+  state_type x_2 = {1., 2.};
+  state_type x_3 = x_1;
+  state_type analytical_1 = {0., 1.};
+  state_type analytical_2 = {1./2., 3./2.};
+  state_type analytical_3 = {1./3., 4./3.};
+  unsigned int step_number = 1;
+  state_type average(2, 0);
+  UpdateAverage<std::vector<double> >(x_1, step_number, average);
+  BOOST_REQUIRE_EQUAL(step_number, 2);
+  BOOST_REQUIRE_EQUAL(average.size(), analytical_1.size());
+  BOOST_CHECK_SMALL(average[0], 0.01);
+  BOOST_CHECK_CLOSE(average[1], analytical_1[1], 0.01);
+  UpdateAverage<std::vector<double> >(x_2, step_number, average);
+  BOOST_REQUIRE_EQUAL(step_number, 3);
+  BOOST_REQUIRE_EQUAL(average.size(), analytical_2.size());
+  BOOST_CHECK_CLOSE(average[0], analytical_2[0], 0.01);
+  BOOST_CHECK_CLOSE(average[1], analytical_2[1], 0.01);
+  UpdateAverage<std::vector<double> >(x_3, step_number, average);
+  BOOST_REQUIRE_EQUAL(step_number, 4);
+  BOOST_REQUIRE_EQUAL(average.size(), analytical_3.size());
+  BOOST_CHECK_CLOSE(average[0], analytical_3[0], 0.01);
+  BOOST_CHECK_CLOSE(average[1], analytical_3[1], 0.01);
+}
