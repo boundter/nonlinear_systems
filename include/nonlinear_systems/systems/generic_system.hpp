@@ -92,16 +92,6 @@ class GenericSystem {
      *  space.
      */
     state_type CalculateMeanField() {
-      /*state_type mean_field(_d); 
-      for (unsigned int i = 0; i < _N; ++i) {
-        for (unsigned int j = 0; j < _d; ++j) {
-          mean_field[j] += _x[_d*i+j];
-        }
-      }
-      for (unsigned int i = 0; i < _d; ++i) {
-        mean_field[i] /= static_cast<double>(_N);
-      }
-      return mean_field;*/
       return CalculateMeanField(_x.begin(), _x.end());
     }
 
@@ -114,22 +104,7 @@ class GenericSystem {
      * coordinates with polar angle and azimuth!
      */
     state_type CalculateMeanFieldSpherical() {
-      // for d = 1 wrap around unit circle
-      state_type spherical_mean_field;
-      if (_d == 1) {
-        double x = 0, y = 0;
-        for (size_t i = 0; i < _x.size(); ++i) {
-          x += cos(_x[i]);
-          y += sin(_x[i]);
-        }
-        spherical_mean_field.resize(2);
-        spherical_mean_field[0] = 1/static_cast<double>(_x.size())*sqrt(x*x + y*y);
-        spherical_mean_field[1] = atan2(y, x);
-      }
-      else {
-        spherical_mean_field = CartesianToSpherical(CalculateMeanField());
-      }
-      return spherical_mean_field;
+      return CalculateMeanFieldSpherical(_x.begin(), _x.end());
     }
 
 
@@ -265,6 +240,33 @@ class GenericSystem {
       return mean_field;
     }
 
+    
+    // Calculate the mean field using iterators to allow easy calculation of the
+    // mean field in a network
+    state_type CalculateMeanFieldSpherical(const iterator_type start,
+        const iterator_type end) {
+      double N = static_cast<double>(end-start)/static_cast<double>(_d);
+      if (N != static_cast<unsigned int>(N)) {
+        throw std::length_error("Mean Field cannot be calculated, if not all oscillators are given.");
+      } 
+      // for d = 1 wrap around unit circle
+      state_type spherical_mean_field;
+      if (_d == 1) {
+        double x = 0, y = 0;
+        for (iterator_type i = start; i != end; ++i) {
+          x += cos((*i));
+          y += sin((*i));
+        }
+        spherical_mean_field.resize(2);
+        spherical_mean_field[0] = 1./N*sqrt(x*x + y*y);
+        spherical_mean_field[1] = atan2(y, x);
+      }
+      else {
+        spherical_mean_field = CartesianToSpherical(CalculateMeanField(start, 
+              end));
+      }
+      return spherical_mean_field;
+    }
 
 
   private:
