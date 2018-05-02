@@ -8,6 +8,7 @@ if(NL_BUILD_TESTS)
     test_statistics.cpp
     # observers
     test_position_observer.cpp
+    test_statistics_observer.cpp
     # odes
     test_harmonic_oscillator_ode.cpp
     test_kuramoto_sakaguchi_ode.cpp
