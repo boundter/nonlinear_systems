@@ -3,6 +3,7 @@
 
 #include <cmath> // copysign, atan2, fabs
 #include <vector>
+#include <nonlinear_systems/observers/statistics_observer.hpp>
 
 // TODO: Add observer for AverageFrequencyMeanFieldObserver
 // TODO: Add observer for AverageFrequencyMeanFieldPhaseAndPhaseObserver
@@ -17,8 +18,6 @@ namespace nonlinear_systems {
 template <typename state_type = std::vector<double> >
 class AverageFrequencyPhaseObserver {
   public:
-    std::vector<double>& _average_frequency;
-
     
     /*!
      * @param one_step_before the phases one timestep before the integration
@@ -30,17 +29,16 @@ class AverageFrequencyPhaseObserver {
     // TODO: Check length
     AverageFrequencyPhaseObserver(const state_type& one_step_before,
         const state_type& two_steps_before, double dt,
-        std::vector<double>& average_frequency)
-      : _average_frequency(average_frequency) {
+        std::vector<double>& average_frequency) {
         _one_step_before = one_step_before;
         _two_steps_before = two_steps_before;
         _dt = dt;
-        step_number = 0;
-        _average_frequency.resize(one_step_before.size());
+        average_frequency.resize(one_step_before.size());
+        _average_observer = std::shared_ptr<AverageObserver<std::vector<double>> >(
+            new AverageObserver<std::vector<double> >(average_frequency));
       }
 
 
-    // TODO: Refactor moving average
     // TODO: Refactor numerical differentiation
     // TODO: unwrapping is only done for 2pi, add more possibilities
     // the differentiation uses the middlepoint method; the numerical derivative
@@ -50,19 +48,17 @@ class AverageFrequencyPhaseObserver {
     // to -pi by subtracting/adding 2pi depending on the state before the
     // crossing
     void operator()(const state_type& x, double t) {
-      for (size_t i = 0; i < _average_frequency.size(); ++i) {
+      state_type frequency;
+      for (size_t i = 0; i < x.size(); ++i) {
         double phase_difference = x[i] - _two_steps_before[i];
         if (fabs(phase_difference) > 1.) {
           phase_difference += std::copysign(2*M_PI, _two_steps_before[i]);
         }
-        double instant_frequency = phase_difference/(2.*_dt);
-        _average_frequency[i] = 
-          (instant_frequency + static_cast<double>(step_number)*_average_frequency[i])
-          /(static_cast<double>(step_number) + 1);
+        frequency.push_back(phase_difference/(2.*_dt));
       }
+      _average_observer->operator()(frequency, t);
       _two_steps_before = _one_step_before;
       _one_step_before = x;
-      step_number += 1;
     }
   
   
@@ -70,7 +66,7 @@ class AverageFrequencyPhaseObserver {
     state_type _one_step_before;
     state_type _two_steps_before;
     double _dt;
-    unsigned int step_number;
+    std::shared_ptr<AverageObserver<std::vector<double>> > _average_observer;
 };
 
 
