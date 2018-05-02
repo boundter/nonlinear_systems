@@ -134,8 +134,21 @@ class GenericNetwork: protected GenericSystem<ode_type,
     }
 
 
+    /*!
+     * \brief Calculates the coordinates on a sphere of the same dimension as
+     * the phase space. If the dimension is 1, the corrdinates will be wrapped
+     * around the unit circle. The first coordinate is the radius and the later
+     * ones are the phases. Careful: in 3-d this is not the same as spherical
+     * coordinates with polar angle and azimuth!
+     */
     virtual matrix_type CalculateMeanFieldSpherical() {
-      return matrix_type(0);
+      matrix_type mean_field;
+      for (size_t i = 0; i < _node_indices.size() - 1; ++i) {
+        mean_field.push_back(GenericSystem<ode_type, state_type, stepper_type>::
+            CalculateMeanFieldSpherical(this->_x.begin()+_node_indices[i],
+                                        this->_x.begin()+_node_indices[i+1]));
+      }
+      return mean_field;
     }
 
   protected:

@@ -138,9 +138,9 @@ BOOST_FIXTURE_TEST_CASE(mean_field, F) {
   BOOST_CHECK_CLOSE(mean_field[1][1], mean_field_2[1], 0.01);
 }
 
-/*
+
 BOOST_AUTO_TEST_CASE(mean_field_spherical) {
-  node_size_type node_sizes = {3, 2};
+  std::vector<unsigned int> node_sizes = {3, 2};
   double  params = 1.;
   
   // 1-dimensional;  Harmonic Oscillator is just a dummy
@@ -168,7 +168,7 @@ BOOST_AUTO_TEST_CASE(mean_field_spherical) {
   BOOST_CHECK_CLOSE(spherical_2[0][0], 5.27, 0.1);
   BOOST_CHECK_CLOSE(spherical_2[0][1], 1.0222, 0.1);
   BOOST_CHECK_CLOSE(spherical_2[1][0], 5.27, 0.1);
-  BOOST_CHECK_CLOSE(spherical_2[1][1], 1.0222., 0.1);
+  BOOST_CHECK_CLOSE(spherical_2[1][1], 1.0222, 0.1);
   
   // 3-dimensional; ODE will not be used, HarmonicOscillator as dummy
   node_sizes = {3, 3};
@@ -183,6 +183,6 @@ BOOST_AUTO_TEST_CASE(mean_field_spherical) {
   BOOST_CHECK_CLOSE(spherical_3[0][1], 1.078, 0.1);
   BOOST_CHECK_CLOSE(spherical_3[0][2], 1.2679, 0.1);
   BOOST_CHECK_CLOSE(spherical_3[1][0], 6.342, 0.1);
-  BOOST_CHECK_CLOSE(spherical_3[1][1], 1.078., 0.1);
-  BOOST_CHECK_CLOSE(spherical_3[1][2], 1.2679., 0.1);
-}*/
+  BOOST_CHECK_CLOSE(spherical_3[1][1], 1.078, 0.1);
+  BOOST_CHECK_CLOSE(spherical_3[1][2], 1.2679, 0.1);
+}
