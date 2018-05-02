@@ -146,11 +146,10 @@ class MKuramotoSakaguchiSystem
     }
 
 
-    // TODO: This should be 3-dimensional, \sigma, \sigma', complex number
     /*!
      *  The forcing generalizes the mean field for the M-Kuramoto-Sakaguchi
      *  system. With it the differential equation can be reduced. The forcing is 
-     *  \f[ H_{\sigma\sigma'} = \sum_{\sigma'} K_{\sigma\sigma'} 
+     *  \f[ H_{\sigma} = \sum_{\sigma'} K_{\sigma\sigma'} 
      *  \frac{N_\sigma'}{N} Z_{\sigma'}e^{i\alpha_{\sigma\sigma'}}. \f]
      *
      *  This seems to be wrong right now.
