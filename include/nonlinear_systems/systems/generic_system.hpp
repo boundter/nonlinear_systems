@@ -92,7 +92,7 @@ class GenericSystem {
      *  space.
      */
     state_type CalculateMeanField() {
-      state_type mean_field(_d); 
+      /*state_type mean_field(_d); 
       for (unsigned int i = 0; i < _N; ++i) {
         for (unsigned int j = 0; j < _d; ++j) {
           mean_field[j] += _x[_d*i+j];
@@ -101,7 +101,8 @@ class GenericSystem {
       for (unsigned int i = 0; i < _d; ++i) {
         mean_field[i] /= static_cast<double>(_N);
       }
-      return mean_field;
+      return mean_field;*/
+      return CalculateMeanField(_x.begin(), _x.end());
     }
 
 
@@ -228,6 +229,7 @@ class GenericSystem {
     unsigned int _N, _d;
     state_type _x;
     double _t;
+    typedef typename state_type::iterator iterator_type;
 
 
     /*!
@@ -239,6 +241,28 @@ class GenericSystem {
       _d = dimension;
       _x.resize(_N*_d);
       _t = 0.;
+    }
+
+    
+    // Calculate the mean field using iterators to allow easy calculation of the
+    // mean field in a network
+    state_type CalculateMeanField(const iterator_type start, const 
+        iterator_type end) {
+      double N = static_cast<double>(end-start)/static_cast<double>(_d);
+      if (N != static_cast<unsigned int>(N)) {
+        throw std::length_error("Mean Field cannot be calculated, if not all oscillators are given.");
+      } 
+      state_type mean_field(_d);
+      // TODO: Check size
+      for (iterator_type i = start; i < end; i += _d) {
+        for (iterator_type j = i; j < i + _d; ++j) {
+          mean_field[j-i] += (*j);
+        }
+      }
+      for (iterator_type i = mean_field.begin(); i != mean_field.end(); ++i) {
+        (*i) /= static_cast<double>(N);
+      }
+      return mean_field;
     }
 
 

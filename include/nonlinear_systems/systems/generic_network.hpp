@@ -50,8 +50,7 @@ class GenericNetwork: protected GenericSystem<ode_type,
      * state = {node_1x_1, node_1x_2, ..., node_2x_1, ....}.
      */
     void SetPosition(const state_type& new_state) {
-      GenericSystem<ode_type, std::vector<precision_type>, 
-      stepper_type>::SetPosition(new_state);
+      GenericSystem<ode_type, state_type, stepper_type>::SetPosition(new_state);
     }
  
 
@@ -60,8 +59,7 @@ class GenericNetwork: protected GenericSystem<ode_type,
      * state = {node_1x_1, node_1x_2, ..., node_2x_1, ....}.
      */
     state_type GetPosition() {
-      return GenericSystem<ode_type, std::vector<precision_type>, 
-             stepper_type>::GetPosition();
+      return GenericSystem<ode_type, state_type, stepper_type>::GetPosition();
     }
 
 
@@ -128,17 +126,16 @@ class GenericNetwork: protected GenericSystem<ode_type,
     virtual matrix_type CalculateMeanField() {
       matrix_type mean_field;
       for (size_t i = 0; i < _node_indices.size() - 1; ++i) {
-        mean_field.push_back(state_type(this->_d));
-        unsigned int number_oscillators = _node_sizes[i];
-        for (unsigned int k = 0; k < this->_d; ++k) {
-          for (unsigned int j = this->_node_indices[i] + k; 
-              j < this->_node_indices[i+1]; j += this->_d) {
-            mean_field.back()[k] += this->_x[j];
-          }
-          mean_field.back()[k] /= static_cast<double>(number_oscillators);
-        }
+        mean_field.push_back(GenericSystem<ode_type, state_type, stepper_type>::
+            CalculateMeanField(this->_x.begin()+_node_indices[i],
+                               this->_x.begin()+_node_indices[i+1]));
       }
       return mean_field;
+    }
+
+
+    virtual matrix_type CalculateMeanFieldSpherical() {
+      return matrix_type(0);
     }
 
   protected:
