@@ -63,54 +63,51 @@ BOOST_AUTO_TEST_CASE(moving_average) {
 }
 
 
-BOOST_AUTO_TEST_CASE(moving_variance) {
+BOOST_AUTO_TEST_CASE(moving_sum_of_squares) {
   state_type x_1 = {0., 1.};
   state_type x_2 = {1., 2.};
   state_type x_3 = x_1;
   state_type x_4 = x_2;
   state_type analytical_mean_1 = {0., 1.};
-  state_type analytical_var_1 = {0., 0.};
+  state_type analytical_sos_1 = {0., 0.};
   state_type analytical_mean_2 = {1./2., 3./2.};
-  state_type analytical_var_2 = {0.5, 0.5};
+  state_type analytical_sos_2 = {0.5, 0.5};
   state_type analytical_mean_3 = {1./3., 4./3.};
-  state_type analytical_var_3 = {1./3., 1./3.};
+  state_type analytical_sos_3 = {2./3., 2./3.};
   state_type analytical_mean_4 = {2./4., 6./4.};
-  state_type analytical_var_4 = {1./3., 1./3.};
+  state_type analytical_sos_4 = {3./3., 3./3.};
   unsigned int step_number = 1;
-  state_type average(2, 0), var(2);
-  UpdateVariance<std::vector<double> >(x_1, step_number, average, var);
+  state_type average(2, 0), sos(2);
+  UpdateSumOfSquares<std::vector<double> >(x_1, step_number, average, sos);
   BOOST_REQUIRE_EQUAL(step_number, 2);
   BOOST_REQUIRE_EQUAL(average.size(), analytical_mean_1.size());
-  BOOST_REQUIRE_EQUAL(var.size(), analytical_var_1.size());
+  BOOST_REQUIRE_EQUAL(sos.size(), analytical_sos_1.size());
   BOOST_CHECK_SMALL(average[0], 0.01);
   BOOST_CHECK_CLOSE(average[1], analytical_mean_1[1], 0.01);
-  BOOST_CHECK_SMALL(var[0], 0.01);
-  BOOST_CHECK_SMALL(var[1], 0.01);
-  UpdateVariance<std::vector<double> >(x_2, step_number, average, var);
+  BOOST_CHECK_SMALL(sos[0], 0.01);
+  BOOST_CHECK_SMALL(sos[1], 0.01);
+  UpdateSumOfSquares<std::vector<double> >(x_2, step_number, average, sos);
   BOOST_REQUIRE_EQUAL(step_number, 3);
   BOOST_REQUIRE_EQUAL(average.size(), analytical_mean_2.size());
-  BOOST_REQUIRE_EQUAL(var.size(), analytical_var_2.size());
+  BOOST_REQUIRE_EQUAL(sos.size(), analytical_sos_2.size());
   BOOST_CHECK_CLOSE(average[0], analytical_mean_2[0], 0.01);
   BOOST_CHECK_CLOSE(average[1], analytical_mean_2[1], 0.01);
-  BOOST_CHECK_CLOSE(var[0], analytical_var_2[0], 0.01);
-  BOOST_CHECK_CLOSE(var[1], analytical_var_2[1], 0.01);
-  UpdateVariance<std::vector<double> >(x_3, step_number, average, var);
+  BOOST_CHECK_CLOSE(sos[0], analytical_sos_2[0], 0.01);
+  BOOST_CHECK_CLOSE(sos[1], analytical_sos_2[1], 0.01);
+  UpdateSumOfSquares<std::vector<double> >(x_3, step_number, average, sos);
   BOOST_REQUIRE_EQUAL(step_number, 4);
   BOOST_REQUIRE_EQUAL(average.size(), analytical_mean_3.size());
-  BOOST_REQUIRE_EQUAL(var.size(), analytical_var_3.size());
+  BOOST_REQUIRE_EQUAL(sos.size(), analytical_sos_3.size());
   BOOST_CHECK_CLOSE(average[0], analytical_mean_3[0], 0.01);
   BOOST_CHECK_CLOSE(average[1], analytical_mean_3[1], 0.01);
-  BOOST_CHECK_CLOSE(var[0], analytical_var_3[0], 0.01);
-  BOOST_CHECK_CLOSE(var[1], analytical_var_3[1], 0.01);
-  UpdateVariance<std::vector<double> >(x_4, step_number, average, var);
+  BOOST_CHECK_CLOSE(sos[0], analytical_sos_3[0], 0.01);
+  BOOST_CHECK_CLOSE(sos[1], analytical_sos_3[1], 0.01);
+  UpdateSumOfSquares<std::vector<double> >(x_4, step_number, average, sos);
   BOOST_REQUIRE_EQUAL(step_number, 5);
   BOOST_REQUIRE_EQUAL(average.size(), analytical_mean_4.size());
-  BOOST_REQUIRE_EQUAL(var.size(), analytical_var_4.size());
+  BOOST_REQUIRE_EQUAL(sos.size(), analytical_sos_4.size());
   BOOST_CHECK_CLOSE(average[0], analytical_mean_4[0], 0.01);
   BOOST_CHECK_CLOSE(average[1], analytical_mean_4[1], 0.01);
-  BOOST_CHECK_CLOSE(var[0], analytical_var_4[0], 0.01);
-  BOOST_CHECK_CLOSE(var[1], analytical_var_4[1], 0.01);
-  
-  
-  
+  BOOST_CHECK_CLOSE(sos[0], analytical_sos_4[0], 0.01);
+  BOOST_CHECK_CLOSE(sos[1], analytical_sos_4[1], 0.01);
 }

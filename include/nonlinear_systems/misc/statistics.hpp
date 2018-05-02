@@ -32,19 +32,16 @@ void UpdateAverage(const state_type& x, unsigned int& step_number,
 
 // TODO: chekc size?
 template<typename state_type=std::vector<double> >
-void UpdateVariance(const state_type& x, unsigned int& step_number,
-    state_type& average, state_type& variance) {
+void UpdateSumOfSquares(const state_type& x, unsigned int& step_number,
+    state_type& average, state_type& sum_of_squares) {
   state_type previous_average = average;
   UpdateAverage(x, step_number, average);
   if (step_number == 2) {
-    variance = state_type(x.size(), 0);
+    sum_of_squares = state_type(x.size(), 0);
   }
   else {
-    // TODO: increase numerical stability
-    for (size_t i = 0; i < variance.size(); ++i) {
-      variance[i] *= (static_cast<double>(step_number) - 3.); // TODO: is this correct?
-      variance[i] += (x[i]-previous_average[i])*(x[i]-average[i]);
-      variance[i] /= (static_cast<double>(step_number) - 2.);
+    for (size_t i = 0; i < sum_of_squares.size(); ++i) {
+      sum_of_squares[i] += (x[i]-previous_average[i])*(x[i]-average[i]);
     }
   }
 }
