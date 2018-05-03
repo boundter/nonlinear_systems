@@ -12,6 +12,10 @@ struct PositionObserver {
   std::vector<state_type>& _x;
   std::vector<double>& _t;
 
+  /*!
+   *  @param position the vector where the position will be saved
+   *  @param t the vector where the time will be saved
+   */
   PositionObserver(std::vector<state_type>& position, std::vector<double>& t)
     : _x(position), _t(t) {;}
 
