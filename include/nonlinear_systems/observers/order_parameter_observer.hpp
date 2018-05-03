@@ -6,12 +6,24 @@
 #include <nonlinear_systems/misc/helper.hpp>
 
 namespace nonlinear_systems {
+/*!
+ *  Observes the average and variance of the order parameter, which is the
+ *  magnitude of the vector of the mean field.
+ */
 template<typename system_type, typename state_type = std::vector<double>,
   typename mean_field_type = state_type >
 class VarianceOrderParameterObserver {
   public:
     system_type& _system;
 
+    /*!
+     *  @param system the system to be observed. It needs to implement a
+     *  CalculateMeanFieldSpherical method.
+     *  @param average_order_parameter the vector in wich the average of the
+     *  order parameter will be saved.
+     *  @param variance_order_parameter the vector in wich the variance of the
+     *  order parameter will be saved.
+     */
     VarianceOrderParameterObserver(system_type& system, 
         state_type& average_order_parameter, state_type& variance_order_parameter)
       : _system(system) {
@@ -27,6 +39,7 @@ class VarianceOrderParameterObserver {
         std::vector<double> order_parameter = GetOrderParameter(mean_field);
         _variance_observer->operator()(order_parameter, t);
       }
+
 
   protected:
     std::shared_ptr<VarianceObserver<std::vector<double>>> _variance_observer;
