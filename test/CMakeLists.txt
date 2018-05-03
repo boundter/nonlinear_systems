@@ -22,7 +22,8 @@ if(NL_BUILD_TESTS)
     test_m_kuramoto_sakaguchi_system.cpp
     test_rayleigh_mean_field_system.cpp
     # dependent stuff
-    test_average_frequency_observer.cpp)
+    test_average_frequency_observer.cpp
+    test_order_parameter_observer.cpp)
   
   
   foreach (sourcefile ${sources})
