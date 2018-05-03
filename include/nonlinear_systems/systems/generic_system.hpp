@@ -272,10 +272,7 @@ class GenericSystem {
   private:
     stepper_type _stepper;
 
-
-    /*
-     *  Return the time of crossing as t_before_crossing + dt/2.
-     */
+    // Return the time of crossing as t_before_crossing + dt/2.
     static double BifurcationZerothOrderCrossingPoincare(
         const state_type& previous_state, double previous_t,
         const state_type& current_state, double current_t) {
@@ -283,11 +280,9 @@ class GenericSystem {
     }
 
 
-    /*
-     * Calculates the differences between the elements in a vector and
-     * averages this difference vector. This is used to calculate the
-     * period from measuring the crossing of a Poincare manifold.
-     */
+    // Calculates the differences between the elements in a vector and
+    // averages this difference vector. This is used to calculate the
+    // period from measuring the crossing of a Poincare manifold.
     double CalculatePeriodFromCrossings(
         const std::vector<double>& times_of_crossing) {
       double period = 0.;
