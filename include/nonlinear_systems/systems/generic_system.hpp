@@ -204,7 +204,7 @@ class GenericSystem {
      *
      *  Integrates the system by a phase \f$ \varphi \f$ defined with the period
      *  \f$ T \f$ as 
-     *  \f[ \varphi = 2\pi frac{t}{T}. \f]
+     *  \f[ \varphi = 2\pi \frac{t}{T}. \f]
      *
      *  @param phase length of the phase to integrate by.
      *  @param T the period of the system.
