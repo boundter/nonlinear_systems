@@ -198,6 +198,68 @@ class GenericSystem {
       return CalculatePeriodFromCrossings(times_of_crossing);
     }
 
+
+    /*!
+     *  \brief Integrates the system by a phase in the range (0, 2*pi)
+     *
+     *  Integrates the system by a phase \f$ \varphi \f$ defined with the period
+     *  \f$ T \f$ as 
+     *  \f[ \varphi = 2\pi frac{t}{T}. \f]
+     *
+     *  @param phase length of the phase to integrate by.
+     *  @param T the period of the system.
+     *  @param dt the timestep.
+     */
+    template <typename observer_type = boost::numeric::odeint::null_observer>
+    void IntegrateByPhase(double phase, double T, double dt, 
+        observer_type observer = boost::numeric::odeint::null_observer()) {
+      double time_difference = phase/(2*M_PI)*T;
+      double steps = time_difference/dt;
+      // casting steps to unsigned int will loose the last fraction of a
+      // timestep
+      this->Integrate(dt, static_cast<unsigned int>(steps), observer);
+      // interate the last fraction
+      double remaining_time = time_difference 
+        - dt*static_cast<double>(static_cast<unsigned int>(steps));
+      this->Integrate(remaining_time, 1);
+      // call the observer separately, because it will be called at the begin of
+      // the Integrate function and at the end, so we have one call to many
+      observer(_x, _t);
+    }
+
+
+    /*!
+     *  \brief Integrates the system to a reference point
+     *
+     *  Integrates the system to a reference point/surface of the mean field, defined by
+     *  the CrossedReference function. The position is checked after every
+     *  integration, so the state after calling this function will always be
+     *  slightly after the reference point/surface. In the worst case scenario
+     *  the difference will be the timestep dt.
+     *
+     *  @param dt the timestep
+     *  @param CrossedReference this is a user defined function taking the
+     *  previous mean field and the current mean field and returns a boolean
+     *  value of the crossing of the reference point/surface.
+     */
+    template <typename observer_type = boost::numeric::odeint::null_observer>
+    void IntegrateToReference(double dt, 
+        bool (*CrossedReference)(const state_type& /*previous_state*/,
+                                 const state_type& /*current_state*/),
+        observer_type observer = boost::numeric::odeint::null_observer()) {
+      observer(_x, _t);
+      state_type previous_state = this->CalculateMeanField();
+      this->Integrate(dt, 1);
+      observer(_x, _t);
+      state_type current_state = this->CalculateMeanField();
+      while(not CrossedReference(previous_state, current_state)) {
+        this->Integrate(dt, 1);
+        observer(_x, _t);
+        previous_state = current_state;
+        current_state = this->CalculateMeanField();
+      }
+    }
+
     
   protected:
     std::unique_ptr<GenericODE> _ode;

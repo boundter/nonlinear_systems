@@ -263,3 +263,35 @@ BOOST_FIXTURE_TEST_CASE(calculate_period_with_observer, Harmonic){
     BOOST_CHECK_CLOSE(numerical[1], analytical[1], 0.01);
   }
 }
+
+
+BOOST_FIXTURE_TEST_CASE(integrate_to_reference, Harmonic) {
+  // using x(0) = 1 and \dot{x}(0) = 0 with omega = 2 the analytic solution is
+  // x(t) = cos(omega*t) and the time needed to cross the positive
+  // \dot{x}-axis is 3*pi/2/2=3*pi/4
+  state_type x = {1., 0.};
+  system->SetPosition(x);
+  double dt = 0.01;
+  double t0 = system->GetTime();
+  system->IntegrateToReference(dt, CrossedPositiveYAxis);
+  double t1 = system->GetTime();
+  BOOST_CHECK_CLOSE(t1 - t0, 3*M_PI/4, 1);
+}
+
+
+BOOST_FIXTURE_TEST_CASE(integrate_by_phase, Harmonic) {
+  // using x(0) = 1 and \dot{x}(0) = 0 with omega = 2 the analytic solution is
+  // x(t) = cos(omega*t) and the period is pi. Integrating by a phase of
+  // pi/2 equals integrating with the time pi/4 and yields the point (0, -2)
+  state_type x = {1., 0.};
+  system->SetPosition(x);
+  double dt = 0.01;
+  double phase = M_PI/2.;
+  double T = M_PI;
+  system->IntegrateByPhase(phase, T, dt);
+  state_type state = system->GetPosition();
+  state_type analytical = {0, -2};
+  BOOST_REQUIRE_EQUAL(state.size(), analytical.size());
+  BOOST_CHECK_SMALL(state[0], 0.01);
+  BOOST_CHECK_CLOSE(state[1], analytical[1], 0.01);
+}
