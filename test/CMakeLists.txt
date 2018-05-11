@@ -7,6 +7,7 @@ if(NL_BUILD_TESTS)
     test_coordinates.cpp
     test_statistics.cpp
     test_helper.cpp
+    test_derivative.cpp
     # observers
     test_position_observer.cpp
     test_statistics_observer.cpp
