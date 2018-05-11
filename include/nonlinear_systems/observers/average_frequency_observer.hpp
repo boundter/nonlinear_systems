@@ -5,6 +5,7 @@
 #include <vector>
 #include <nonlinear_systems/observers/statistics_observer.hpp>
 #include <nonlinear_systems/misc/helper.hpp>
+#include <nonlinear_systems/misc/derivative.hpp>
 
 // TODO: Add observer for AverageFrequencyMeanFieldObserver
 // TODO: Add observer for AverageFrequencyMeanFieldPhaseAndPhaseObserver
@@ -40,7 +41,6 @@ class AverageFrequencyPhaseObserver {
       }
 
 
-    // TODO: Refactor numerical differentiation
     // TODO: unwrapping is only done for 2pi, add more possibilities
     // the differentiation uses the middlepoint method; the numerical derivative
     // x' at the timepoint n with timestep dt is:
@@ -49,14 +49,10 @@ class AverageFrequencyPhaseObserver {
     // to -pi by subtracting/adding 2pi depending on the state before the
     // crossing
     void operator()(const state_type& x, double t) {
-      state_type frequency;
-      for (size_t i = 0; i < x.size(); ++i) {
-        double phase_difference = x[i] - _two_steps_before[i];
-        if (fabs(phase_difference) > 1.) {
-          phase_difference += std::copysign(2*M_PI, _two_steps_before[i]);
-        }
-        frequency.push_back(phase_difference/(2.*_dt));
-      }
+      double modulo = 2*M_PI;
+      double biggest_step_size = 1.;
+      state_type frequency = TwoPointDerivative(_two_steps_before, x, _dt, 
+          modulo, biggest_step_size);
       _average_observer->operator()(frequency, t);
       _two_steps_before = _one_step_before;
       _one_step_before = x;
