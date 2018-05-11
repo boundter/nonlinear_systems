@@ -84,6 +84,42 @@ BOOST_FIXTURE_TEST_CASE(position, Harmonic) {
 }
 
 
+BOOST_AUTO_TEST_CASE(position_spherical_1d) {
+  // use HarmonicOscillatorODE as a dummy ODE
+  double params = 1;
+  unsigned int N = 3;
+  unsigned int d = 1;
+  GenericSystem<HarmonicOscillatorODE> system(N, d, &params);
+  state_type x = {1., 2., 3.};
+  system.SetPosition(x);
+  state_type spherical = system.GetPositionSpherical();
+  BOOST_REQUIRE_EQUAL(spherical.size(), x.size());
+  BOOST_CHECK_CLOSE(spherical[0], x[0], 0.01);
+  BOOST_CHECK_CLOSE(spherical[1], x[1], 0.01);
+  BOOST_CHECK_CLOSE(spherical[2], x[2], 0.01);
+}
+
+
+BOOST_AUTO_TEST_CASE(position_spherical_2d) {
+  // use HarmonicOscillatorODE as a dummy ODE
+  double params = 1;
+  unsigned int N = 3;
+  unsigned int d = 2;
+  GenericSystem<HarmonicOscillatorODE> system(N, d, &params);
+  state_type x = {1., 2., 3., 4., 5., 6.};
+  state_type analytical = {2.236, 1.107, 5, 0.927, 7.81, 0.876};
+  system.SetPosition(x);
+  state_type spherical = system.GetPositionSpherical();
+  BOOST_REQUIRE_EQUAL(spherical.size(), analytical.size());
+  BOOST_CHECK_CLOSE(spherical[0], analytical[0], 0.1);
+  BOOST_CHECK_CLOSE(spherical[1], analytical[1], 0.1);
+  BOOST_CHECK_CLOSE(spherical[2], analytical[2], 0.1);
+  BOOST_CHECK_CLOSE(spherical[3], analytical[3], 0.1);
+  BOOST_CHECK_CLOSE(spherical[4], analytical[4], 0.1);
+  BOOST_CHECK_CLOSE(spherical[5], analytical[5], 0.1);
+}
+
+
 BOOST_FIXTURE_TEST_CASE(resize_method, Harmonic) {
   system->Resize(2);
 
