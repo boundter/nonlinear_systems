@@ -18,6 +18,36 @@ class InstantaneousFrequencyObserver {
     system_type& _system;
 
     /*!
+     *  This constructs an observer of the instantaneous frequency using the two
+     *  point method for the derivative. To start the method the phases of the
+     *  oscillators one and two steps before the integration have to be passed
+     *  as inital conditions, as well as the time of the step before.
+     *
+     *  @param system the observed system.
+     *  @param one_step_before phases one timestep before the integration.
+     *  @param time time one timestep before the integration.
+     *  @param two_steps_before phases two timestep before the integration.
+     *  @param dt the timestep.
+     *  @param dimension the dimension of the oscillators.
+     *  @param instantaneous_frequency the observed frequency.
+     *  @param t the observed time.
+     */
+    InstantaneousFrequencyObserver(system_type& system,
+      const state_type& one_step_before, double t_before, 
+      const state_type& two_steps_before, double dt , unsigned int dimension,
+      std::vector<state_type>& instantaneous_frequency, std::vector<double>& t)
+    : _instantaneous_frequency(instantaneous_frequency), _t(t), _system(system){
+      _dt = dt;
+      _d = dimension;
+      _modulo = 2*M_PI;
+      _limit_step_size = 1.;
+      _two_steps_before = two_steps_before;
+      _one_step_before = one_step_before;
+      _t_before = t_before;
+    }
+
+
+    /*!
      *  During the construction the system will be integrated twice to generate
      *  the necessary history for the two-point derivative. This will give the
      *  first time of observation as t+dt.
