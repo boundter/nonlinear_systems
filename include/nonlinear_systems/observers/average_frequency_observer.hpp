@@ -6,6 +6,7 @@
 #include <nonlinear_systems/observers/statistics_observer.hpp>
 #include <nonlinear_systems/misc/helper.hpp>
 #include <nonlinear_systems/misc/derivative.hpp>
+#include <nonlinear_systems/misc/frequency_helper.hpp>
 
 // TODO: Add observer for AverageFrequencyMeanFieldObserver
 // TODO: Add observer for AverageFrequencyMeanFieldPhaseAndPhaseObserver
@@ -32,12 +33,14 @@ class AverageFrequencyPhaseObserver {
     AverageFrequencyPhaseObserver(const state_type& one_step_before,
         const state_type& two_steps_before, double dt,
         std::vector<double>& average_frequency) {
-        _one_step_before = one_step_before;
-        _two_steps_before = two_steps_before;
-        _dt = dt;
         average_frequency.resize(one_step_before.size());
         _average_observer = std::shared_ptr<AverageObserver<std::vector<double>> >(
             new AverageObserver<std::vector<double> >(average_frequency));
+        double modulo = 2*M_PI;
+        double limit_step_size = 1.;
+        _frequency_helper = std::shared_ptr<FrequencyHelper<state_type>>(
+          new FrequencyHelper<state_type>(one_step_before, two_steps_before, dt, 
+            modulo, limit_step_size));
       }
 
 
@@ -49,21 +52,14 @@ class AverageFrequencyPhaseObserver {
     // to -pi by subtracting/adding 2pi depending on the state before the
     // crossing
     void operator()(const state_type& x, double t) {
-      double modulo = 2*M_PI;
-      double biggest_step_size = 1.;
-      state_type frequency = TwoPointDerivative(_two_steps_before, x, _dt, 
-          modulo, biggest_step_size);
+      state_type frequency = _frequency_helper->operator()(x);
       _average_observer->operator()(frequency, t);
-      _two_steps_before = _one_step_before;
-      _one_step_before = x;
     }
   
   
   protected:
-    state_type _one_step_before;
-    state_type _two_steps_before;
-    double _dt;
     std::shared_ptr<AverageObserver<std::vector<double>> > _average_observer;
+    std::shared_ptr<FrequencyHelper<state_type>> _frequency_helper;
 };
 
 
