@@ -5,7 +5,6 @@
 #include <vector>
 #include <nonlinear_systems/observers/statistics_observer.hpp>
 #include <nonlinear_systems/misc/helper.hpp>
-#include <nonlinear_systems/misc/derivative.hpp>
 #include <nonlinear_systems/misc/frequency_helper.hpp>
 
 // TODO: Add observer for AverageFrequencyMeanFieldObserver
