@@ -3,8 +3,8 @@
 
 #include <cmath>
 #include <vector>
-#include <nonlinear_systems/misc/derivative.hpp>
 #include <nonlinear_systems/misc/frequency_helper.hpp>
+#include <nonlinear_systems/misc/helper.hpp>
 
 namespace nonlinear_systems {
 template<typename system_type, typename state_type = std::vector<double>>
@@ -63,23 +63,12 @@ class InstantaneousFrequencyObserver {
         unsigned int dimension, std::vector<state_type>& instantaneous_frequency,
         std::vector<double>& t) 
     : _instantaneous_frequency(instantaneous_frequency), _t(t), _system(system){
-      _d = dimension;
-      state_type two_steps_before = GetPhases(system.GetPositionSpherical());
-      system.Integrate(dt, 1);
-      state_type one_step_before = GetPhases(system.GetPositionSpherical());
-      _t_before = system.GetTime();
-      system.Integrate(dt, 1);
-      double modulo = 2*M_PI;
-      double limit_step_size = 1.;
-      _frequency_helper = std::shared_ptr<FrequencyHelper<state_type>>(
-          new FrequencyHelper<state_type>(one_step_before, two_steps_before, dt, 
-            modulo, limit_step_size));
+      SetInitialState(dt, dimension);
     }
 
 
     void operator()(const state_type& x, double t) {
-      state_type current_state = _system.GetPositionSpherical();
-      state_type phases = GetPhases(current_state);
+      state_type phases = this->GetPhases();
       _instantaneous_frequency.push_back(_frequency_helper->operator()(phases));
       _t.push_back(_t_before);
       _t_before = t;
@@ -89,10 +78,56 @@ class InstantaneousFrequencyObserver {
     double _t_before;
     unsigned int _d;
     std::shared_ptr<FrequencyHelper<state_type>> _frequency_helper;
+    
+    /*
+     *  ! Minimal constructor for use in derived classes.
+     *
+     *  This constructor does not properly initialize the Observer. It is used
+     *  to do the bare minimum for derived classes. This solves the problem of
+     *  the GetPhases: If the constructor calls GetPhases it will use the one of
+     *  the base class, so the one defined in InstantaneousFrequencyObserver,
+     *  but if the derived class calls SetInitialState to initialize the rest of
+     *  the class it will use the GetPhases defined in the derived class.
+     *
+     *  @param system the observed system.
+     *  @param instantaneous_frequency the observed frequency.
+     *  @param t the observed time.
+     */
+    InstantaneousFrequencyObserver(system_type& system, 
+        std::vector<state_type>& instantaneous_frequency, std::vector<double>& t)
+    : _instantaneous_frequency(instantaneous_frequency), _t(t), _system(system)
+    {}
+
+    
+    /*
+     *  ! Does the rest of the worker of the miniaml constructor.
+     *
+     *  This method should be called after the minimal constructor to properly
+     *  set the initial conditions of the observer. The reason for this is
+     *  explained in the minimal constructor.
+     *
+     *  @param dt the timestep.
+     *  @param dimension the dimension of the system, this is only needed, if
+     *  the default GetPhases is used.
+     */
+    void SetInitialState(double dt, unsigned int dimension) {
+      _d = dimension;
+      state_type two_steps_before = this->GetPhases();
+      _system.Integrate(dt, 1);
+      state_type one_step_before = this->GetPhases();
+      _t_before = _system.GetTime();
+      _system.Integrate(dt, 1);
+      double modulo = 2*M_PI;
+      double limit_step_size = 1.;
+      _frequency_helper = std::shared_ptr<FrequencyHelper<state_type>>(
+          new FrequencyHelper<state_type>(one_step_before, two_steps_before, dt, 
+            modulo, limit_step_size));
+    }
 
 
     // filters the order parameter from the state
-    state_type GetPhases(const state_type& x) {
+    virtual state_type GetPhases() {
+      state_type x = _system.GetPositionSpherical();
       state_type phases;
       if (_d == 1) {
         phases = x;
@@ -107,6 +142,39 @@ class InstantaneousFrequencyObserver {
         }
       }
       return phases;
+    }
+};
+
+
+template<typename system_type, typename state_type = std::vector<double>,
+  typename mean_field_type = state_type>
+class InstantaneousFrequencyMeanFieldObserver: 
+  public InstantaneousFrequencyObserver<system_type, state_type> {
+  public:
+
+    InstantaneousFrequencyMeanFieldObserver(system_type& system,
+        double dt, std::vector<state_type>& instantaneous_frequency, 
+        std::vector<double>& t)
+    : InstantaneousFrequencyObserver<system_type, state_type>(
+        system, instantaneous_frequency, t){ 
+      this->SetInitialState(dt, 0);
+    } 
+
+
+    InstantaneousFrequencyMeanFieldObserver(system_type& system,
+      const state_type& one_step_before, double t_before, 
+      const state_type& two_steps_before, double dt,
+      std::vector<state_type>& instantaneous_frequency, std::vector<double>& t)
+    :InstantaneousFrequencyObserver<system_type, state_type>(
+        system, one_step_before, t_before, two_steps_before, dt, 0,
+        instantaneous_frequency, t) {}
+
+  protected:
+    MeanFieldHelper<mean_field_type> _mean_field_helper;
+
+    state_type GetPhases() {
+      state_type mean_field = this->_system.CalculateMeanFieldSpherical();
+      return _mean_field_helper.GetMeanFieldPhase(mean_field);
     }
 };
 } // nonlinear_systems
