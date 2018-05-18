@@ -75,11 +75,13 @@ struct Kuramoto {
     state_type x = {0., 1.};
     system->SetPosition(x);
     system->Integrate(dt, n_transient);
-    state_two_before = system->GetPosition();
+    state_two_before = system->GetPositionSpherical();
     mean_field_two_before = system->CalculateMeanFieldSpherical();
+    mean_field_two_before.erase(mean_field_two_before.begin());
     system->Integrate(dt, 1);
-    state_one_before = system->GetPosition();
+    state_one_before = system->GetPositionSpherical();
     mean_field_one_before = system->CalculateMeanFieldSpherical();
+    mean_field_one_before.erase(mean_field_one_before.begin());
     system->Integrate(dt, 1);
   }
 
@@ -132,8 +134,8 @@ BOOST_AUTO_TEST_CASE(unwrapped_phase) {
   state_type one_step_before = system.GetPosition();
   system.Integrate(dt, 1);
   system.Integrate(dt, n_steps, 
-      AverageFrequencyPhaseObserver<state_type>(one_step_before, two_steps_before, 
-        dt, average_frequency));
+      AverageFrequencyObserver<GenericSystem<SimpleRotators>, state_type>(
+        system, one_step_before, two_steps_before, dt, 1, average_frequency));
 
   BOOST_CHECK_CLOSE(params[0], average_frequency[0], 0.01);
   BOOST_CHECK_CLOSE(2*params[0], average_frequency[1], 0.01);
@@ -142,24 +144,30 @@ BOOST_AUTO_TEST_CASE(unwrapped_phase) {
 
 BOOST_AUTO_TEST_CASE(limit_cycle) {
   double params = 1.;
-  GenericSystem<TwoHarmonicOscillators> system(2, 2, &params);
+  unsigned int dimension = 2;
+  GenericSystem<TwoHarmonicOscillators> system(2, dimension, &params);
 
   double dt = 0.01;
   unsigned int n = 1e4;
   state_type average_frequency(2);
   state_type initial_condition {0., 1., 0., 1.};
   system.SetPosition(initial_condition);
-  state_type two_steps_before = system.GetPosition();
+  state_type two_steps_before = system.GetPositionSpherical();
+  two_steps_before.erase(two_steps_before.begin()+dimension);
+  two_steps_before.erase(two_steps_before.begin());
   system.Integrate(dt, 1);
-  state_type one_step_before = system.GetPosition();
+  state_type one_step_before = system.GetPositionSpherical();
+  one_step_before.erase(one_step_before.begin()+dimension);
+  one_step_before.erase(one_step_before.begin());
   system.Integrate(dt, 1);
   system.Integrate(dt, n, 
-      AverageFrequencyObserver<state_type>(one_step_before, two_steps_before, 
-        dt, average_frequency));
+      AverageFrequencyObserver<GenericSystem<TwoHarmonicOscillators>, state_type>(
+        system, one_step_before, two_steps_before, dt, 2, average_frequency));
 
   BOOST_CHECK_CLOSE_FRACTION(params, fabs(average_frequency[0]), 0.01);
   BOOST_CHECK_CLOSE_FRACTION(2*params, fabs(average_frequency[1]), 0.01);
 }
+
 
 
 BOOST_FIXTURE_TEST_CASE(mean_field_phase, Kuramoto) {
@@ -174,9 +182,11 @@ BOOST_FIXTURE_TEST_CASE(mean_field_phase, Kuramoto) {
 
 BOOST_FIXTURE_TEST_CASE(mean_field_phase_network, MKuramoto) {
   system->Integrate(dt, n_transient);
-  network_type mean_field_two_before = system->CalculateMeanField();
+  network_type two_before_network = system->CalculateMeanFieldSpherical();
+  state_type mean_field_two_before = {two_before_network[0][1], two_before_network[1][1]};
   system->Integrate(dt, 1);
-  network_type mean_field_one_before = system->CalculateMeanField();
+  network_type one_before_network = system->CalculateMeanFieldSpherical();
+  state_type mean_field_one_before = {one_before_network[0][1], one_before_network[1][1]};
   system->Integrate(dt, 1);
   state_type average_frequency_network;
   system->Integrate(dt, n_mean,
@@ -196,7 +206,7 @@ BOOST_FIXTURE_TEST_CASE(mean_field_and_phase, Kuramoto) {
   system->Integrate(dt, n_mean,
       AverageFrequencyMeanFieldAndPhaseObserver<KuramotoSystem,
       state_type, state_type>((*system), state_one_before, state_two_before,
-        mean_field_one_before, mean_field_two_before, dt, average_frequency,
+        mean_field_one_before, mean_field_two_before, dt, 1, average_frequency,
         average_frequency_mean_field));
   BOOST_REQUIRE_EQUAL(average_frequency.size(), 2);
   BOOST_REQUIRE_EQUAL(average_frequency_mean_field.size(), 1);
@@ -212,7 +222,7 @@ BOOST_FIXTURE_TEST_CASE(mean_field_and_phase_integration_in_constructor,
   state_type average_frequency_mean_field;
   system->Integrate(dt, n_mean,
       AverageFrequencyMeanFieldAndPhaseObserver<KuramotoSystem,
-      state_type, state_type>((*system), dt, average_frequency, 
+      state_type, state_type>((*system), dt, 1, average_frequency, 
         average_frequency_mean_field));
   BOOST_REQUIRE_EQUAL(average_frequency.size(), 2);
   BOOST_REQUIRE_EQUAL(average_frequency_mean_field.size(), 1);
@@ -229,7 +239,7 @@ BOOST_FIXTURE_TEST_CASE(mean_field_and_phase_network_integration_in_constructor,
   network_type mean_field_0 = system->CalculateMeanField();
   system->Integrate(dt, n_mean,
       AverageFrequencyMeanFieldAndPhaseObserver<MKuramotoSakaguchiSystem,
-      state_type, network_type>((*system), dt, average_frequency_phase, 
+      state_type, network_type>((*system), dt, 1, average_frequency_phase, 
         average_frequency_network));
   network_type mean_field_1 = system->CalculateMeanField();
   state_type result;
