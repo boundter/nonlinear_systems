@@ -45,8 +45,8 @@ class InstantaneousFrequencyObserver {
       double modulo = 2*M_PI;
       double limit_step_size = 1.;
       _frequency_helper = std::shared_ptr<FrequencyHelper<frequency_type>>(
-          new FrequencyHelper<frequency_type>(one_step_before, two_steps_before, dt, 
-            modulo, limit_step_size));
+          new FrequencyHelper<frequency_type>(one_step_before, two_steps_before, 
+            dt, modulo, limit_step_size));
     }
 
 
@@ -62,7 +62,8 @@ class InstantaneousFrequencyObserver {
      *  @param t the observed time.
      */
     InstantaneousFrequencyObserver(system_type& system, double dt, 
-        unsigned int dimension, std::vector<frequency_type>& instantaneous_frequency,
+        unsigned int dimension, 
+        std::vector<frequency_type>& instantaneous_frequency, 
         std::vector<double>& t) 
     : _instantaneous_frequency(instantaneous_frequency), _t(t), _system(system){
       SetInitialState(dt, dimension);
@@ -96,7 +97,8 @@ class InstantaneousFrequencyObserver {
      *  @param t the observed time.
      */
     InstantaneousFrequencyObserver(system_type& system, 
-        std::vector<frequency_type>& instantaneous_frequency, std::vector<double>& t)
+        std::vector<frequency_type>& instantaneous_frequency, 
+        std::vector<double>& t)
     : _instantaneous_frequency(instantaneous_frequency), _t(t), _system(system)
     {}
 
@@ -122,8 +124,8 @@ class InstantaneousFrequencyObserver {
       double modulo = 2*M_PI;
       double limit_step_size = 1.;
       _frequency_helper = std::shared_ptr<FrequencyHelper<frequency_type>>(
-          new FrequencyHelper<frequency_type>(one_step_before, two_steps_before, dt, 
-            modulo, limit_step_size));
+          new FrequencyHelper<frequency_type>(one_step_before, two_steps_before, 
+            dt, modulo, limit_step_size));
     }
 
 
@@ -152,10 +154,24 @@ class InstantaneousFrequencyObserver {
 
 template<typename system_type, typename state_type = std::vector<double>,
   typename mean_field_type = state_type>
+/*!
+ *  \brief Observes the instantaneous frequency of the mean fields
+ *  of the system.
+ */
 class InstantaneousFrequencyMeanFieldObserver: 
   public InstantaneousFrequencyObserver<system_type, std::vector<double>> {
   public:
 
+    /*!
+     *  During the construction the system will be integrated twice to generate
+     *  the necessary history for the two-point derivative. This will give the
+     *  first time of observation as t+dt.
+     *
+     *  @param system the observed system.
+     *  @param dt the timestep.
+     *  @param instantaneous_frequency the observed frequency.
+     *  @param t the observed time.
+     */
     InstantaneousFrequencyMeanFieldObserver(system_type& system,
         double dt, std::vector<frequency_type>& instantaneous_frequency, 
         std::vector<double>& t)
@@ -165,12 +181,29 @@ class InstantaneousFrequencyMeanFieldObserver:
     } 
 
 
+    /*!
+     *  This constructs an observer of the instantaneous frequency using the two
+     *  point method for the derivative. To start the method the phases of the
+     *  mean fields one and two steps before the integration have to be passed
+     *  as inital conditions, as well as the time of the step before.
+     *
+     *  @param system the observed system.
+     *  @param one_step_before mean field phases one timestep before the 
+     *  integration.
+     *  @param time time one timestep before the integration.
+     *  @param two_steps_before mean field phases two timestep before the 
+     *  integration.
+     *  @param dt the timestep.
+     *  @param instantaneous_frequency the observed frequency.
+     *  @param t the observed time.
+     */
     InstantaneousFrequencyMeanFieldObserver(system_type& system,
       const frequency_type& one_step_before, double t_before, 
       const frequency_type& two_steps_before, double dt,
       std::vector<frequency_type>& instantaneous_frequency, std::vector<double>& t)
     :InstantaneousFrequencyObserver<system_type, frequency_type>(
-        system, one_step_before, t_before, two_steps_before, dt, 0, instantaneous_frequency, t) {}
+        system, one_step_before, t_before, two_steps_before, dt, 0, 
+        instantaneous_frequency, t) {}
 
   protected:
     MeanFieldHelper<mean_field_type> _mean_field_helper;
@@ -184,38 +217,57 @@ class InstantaneousFrequencyMeanFieldObserver:
 
 template<typename system_type, typename state_type = std::vector<double>,
   typename mean_field_type = state_type>
+/*!
+ *  \brief Observes the instantaneous frequency of the mean fields and the
+ *  oscillators of the system.
+ */
 class InstantaneousFrequencyMeanFieldAndPhaseObserver {
   public:
 
-  InstantaneousFrequencyMeanFieldAndPhaseObserver(system_type& system,
-      double dt, unsigned int dimension, 
-      std::vector<frequency_type>& instantaneous_frequency_phase,
-      std::vector<frequency_type>& instantaneous_frequency_mean_field,
-      std::vector<double>& t) {
-    frequency_type system_two_before = GetPhases(system, dimension);
-    frequency_type mean_field_two_before = GetPhasesMeanField(system);
-    system.Integrate(dt, 1);
-    frequency_type system_one_before = GetPhases(system, dimension);
-    frequency_type mean_field_one_before = GetPhasesMeanField(system);
-    double t_before = system.GetTime();
-    system.Integrate(dt, 1);
-    _phase_observer = std::shared_ptr<
-      InstantaneousFrequencyObserver<system_type, state_type>>( 
-          new InstantaneousFrequencyObserver<system_type, state_type>(
-            system, system_one_before, t_before, system_two_before, dt, 
-            dimension, instantaneous_frequency_phase, t));
-    _mean_field_observer = std::shared_ptr<
-      InstantaneousFrequencyMeanFieldObserver<system_type, state_type, mean_field_type>>( 
-          new InstantaneousFrequencyMeanFieldObserver<system_type, state_type, mean_field_type>(
-            system, mean_field_one_before, t_before, mean_field_two_before, dt, 
-            instantaneous_frequency_mean_field, t_dummy));
-  }
+    /*!
+     *  During the construction the system will be integrated twice to generate
+     *  the necessary history for the two-point derivative. This will give the
+     *  first time of observation as t+dt.
+     *
+     *  @param system the observed system.
+     *  @param dt the timestep.
+     *  @param dimension the dimension of the ODE.
+     *  @param instantaneous_frequency the observed frequency of the oscillators.
+     *  @param instantaneous_frequency_mean_field the observed frequency of the
+     *  mean field.
+     *  @param t the observed time.
+     */
+    InstantaneousFrequencyMeanFieldAndPhaseObserver(system_type& system,
+        double dt, unsigned int dimension, 
+        std::vector<frequency_type>& instantaneous_frequency_phase,
+        std::vector<frequency_type>& instantaneous_frequency_mean_field,
+        std::vector<double>& t) {
+      frequency_type system_two_before = GetPhases(system, dimension);
+      frequency_type mean_field_two_before = GetPhasesMeanField(system);
+      system.Integrate(dt, 1);
+      frequency_type system_one_before = GetPhases(system, dimension);
+      frequency_type mean_field_one_before = GetPhasesMeanField(system);
+      double t_before = system.GetTime();
+      system.Integrate(dt, 1);
+      _phase_observer = std::shared_ptr<
+        InstantaneousFrequencyObserver<system_type, state_type>>( 
+            new InstantaneousFrequencyObserver<system_type, state_type>(
+              system, system_one_before, t_before, system_two_before, dt, 
+              dimension, instantaneous_frequency_phase, t));
+      _mean_field_observer = std::shared_ptr<
+        InstantaneousFrequencyMeanFieldObserver<system_type, state_type, 
+        mean_field_type>>( 
+            new InstantaneousFrequencyMeanFieldObserver<system_type, state_type, 
+            mean_field_type>(
+              system, mean_field_one_before, t_before, mean_field_two_before, dt, 
+              instantaneous_frequency_mean_field, t_dummy));
+    }
 
 
-  void operator()(const state_type& x, double t) {
-    _phase_observer->operator()(x, t);
-    _mean_field_observer->operator()(x, t);
-  }
+    void operator()(const state_type& x, double t) {
+      _phase_observer->operator()(x, t);
+      _mean_field_observer->operator()(x, t);
+    }
   
   protected:
     std::shared_ptr<InstantaneousFrequencyObserver<system_type, state_type>>
