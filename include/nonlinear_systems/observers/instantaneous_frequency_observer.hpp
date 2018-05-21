@@ -166,16 +166,11 @@ class InstantaneousFrequencyMeanFieldObserver:
 
 
     InstantaneousFrequencyMeanFieldObserver(system_type& system,
-      const mean_field_type& one_step_before, double t_before, 
-      const mean_field_type& two_steps_before, double dt,
+      const frequency_type& one_step_before, double t_before, 
+      const frequency_type& two_steps_before, double dt,
       std::vector<frequency_type>& instantaneous_frequency, std::vector<double>& t)
     :InstantaneousFrequencyObserver<system_type, frequency_type>(
-        system, instantaneous_frequency, t) {
-      frequency_type phases_one_before = _mean_field_helper.GetMeanFieldPhase(
-          one_step_before);
-      frequency_type phases_two_before = _mean_field_helper.GetMeanFieldPhase(
-          two_steps_before);
-    }
+        system, one_step_before, t_before, two_steps_before, dt, 0, instantaneous_frequency, t) {}
 
   protected:
     MeanFieldHelper<mean_field_type> _mean_field_helper;
@@ -190,12 +185,13 @@ class InstantaneousFrequencyMeanFieldObserver:
 template<typename system_type, typename state_type = std::vector<double>,
   typename mean_field_type = state_type>
 class InstantaneousFrequencyMeanFieldAndPhaseObserver {
+  public:
 
   InstantaneousFrequencyMeanFieldAndPhaseObserver(system_type& system,
       double dt, unsigned int dimension, 
       std::vector<frequency_type>& instantaneous_frequency_phase,
       std::vector<frequency_type>& instantaneous_frequency_mean_field,
-      std::vector<double> t) {
+      std::vector<double>& t) {
     frequency_type system_two_before = GetPhases(system, dimension);
     frequency_type mean_field_two_before = GetPhasesMeanField(system);
     system.Integrate(dt, 1);
@@ -203,18 +199,16 @@ class InstantaneousFrequencyMeanFieldAndPhaseObserver {
     frequency_type mean_field_one_before = GetPhasesMeanField(system);
     double t_before = system.GetTime();
     system.Integrate(dt, 1);
-    _phase_observer = std::shared_ptr<InstantaneousFrequencyObserver<system_type, 
-                    state_type>>( new InstantaneousFrequencyObserver<system_type,
-                        state_type>(system, system_one_before, t_before,
-                          system_two_before, dt, dimension, 
-                          instantaneous_frequency_phase, t));
-    std::vector<double> t_dummy;
-    _mean_field_observer = std::shared_ptr<InstantaneousFrequencyMeanFieldObserver<
-      system_type, state_type, mean_field_type>>( 
-          new InstantaneousFrequencyMeanFieldObserver<system_type, state_type,
-          mean_field_type>(system, mean_field_one_before, t_before, 
-            mean_field_two_before, dt, instantaneous_frequency_mean_field,
-            t_dummy));
+    _phase_observer = std::shared_ptr<
+      InstantaneousFrequencyObserver<system_type, state_type>>( 
+          new InstantaneousFrequencyObserver<system_type, state_type>(
+            system, system_one_before, t_before, system_two_before, dt, 
+            dimension, instantaneous_frequency_phase, t));
+    _mean_field_observer = std::shared_ptr<
+      InstantaneousFrequencyMeanFieldObserver<system_type, state_type, mean_field_type>>( 
+          new InstantaneousFrequencyMeanFieldObserver<system_type, state_type, mean_field_type>(
+            system, mean_field_one_before, t_before, mean_field_two_before, dt, 
+            instantaneous_frequency_mean_field, t_dummy));
   }
 
 
@@ -229,6 +223,7 @@ class InstantaneousFrequencyMeanFieldAndPhaseObserver {
     std::shared_ptr<InstantaneousFrequencyMeanFieldObserver<system_type, 
       state_type, mean_field_type>> _mean_field_observer;
     MeanFieldHelper<mean_field_type> _mean_field_helper;
+    std::vector<double> t_dummy;
 
     frequency_type GetPhasesMeanField(system_type& system) {
       mean_field_type mean_field = system.CalculateMeanFieldSpherical();
