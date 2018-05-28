@@ -25,7 +25,8 @@ if(NL_BUILD_TESTS)
     # dependent stuff
     test_average_frequency_observer.cpp
     test_order_parameter_observer.cpp
-    test_instantaneous_frequency_observer.cpp)
+    test_instantaneous_frequency_observer.cpp
+    test_minimal_order_parameter_observer.cpp)
   
   
   foreach (sourcefile ${sources})
