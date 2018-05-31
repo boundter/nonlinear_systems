@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include <nonlinear_systems/systems/m_kuramoto_sakaguchi_system.hpp>
 
+#include <iostream>
+
 typedef std::vector<double> state_type;
 typedef std::vector<state_type> network_type;
 typedef std::vector<unsigned int> node_size_type;
@@ -172,6 +174,27 @@ BOOST_FIXTURE_TEST_CASE(forcing, F) {
   BOOST_CHECK_CLOSE(measured[0][1], forcing_1[1], 0.01);
   BOOST_CHECK_CLOSE(measured[1][0], forcing_2[0], 0.01);
   BOOST_CHECK_CLOSE(measured[1][1], forcing_2[1], 0.01);
+}
+
+
+BOOST_AUTO_TEST_CASE(forcing_simple_constructor) {
+  unsigned int N = 2;
+  std::vector<unsigned int> node_sizes = {N, N};
+  double omega = 0.5;
+  double eps = 0.3;
+  MKuramotoSakaguchiSystem system(omega, eps, node_sizes);
+  state_type x = {0., M_PI/2., M_PI/2., M_PI};
+  state_type forcing_1 = {0.5798, -0.1296};
+  state_type forcing_2 = forcing_1;
+  system.SetPosition(x);
+  network_type measured = system.CalculateForcing();
+  BOOST_REQUIRE_EQUAL(measured.size(), 2);
+  BOOST_REQUIRE_EQUAL(measured[0].size(), 2);
+  BOOST_REQUIRE_EQUAL(measured[1].size(), 2);
+  BOOST_CHECK_CLOSE(measured[0][0], forcing_1[0], 0.1);
+  BOOST_CHECK_CLOSE(measured[0][1], forcing_1[1], 0.1);
+  BOOST_CHECK_CLOSE(measured[1][0], forcing_2[0], 0.1);
+  BOOST_CHECK_CLOSE(measured[1][1], forcing_2[1], 0.1);
 }
 
 

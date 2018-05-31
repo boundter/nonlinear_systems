@@ -72,11 +72,11 @@ class MKuramotoSakaguchiSystem
       }
       // defining this also implicitly checks for the correct system size
       state_type coupling_row = {1., -(1.+repulsive_excess)};
-      network_type coupling = {coupling_row, coupling_row};
+      _coupling = {coupling_row, coupling_row};
       state_type zero_row = {0., 0.};
-      network_type phase_shift = {zero_row, zero_row};
+      _phase_shift = {zero_row, zero_row};
       this->_ode = std::unique_ptr<MKuramotoSakaguchiODE>(
-          new MKuramotoSakaguchiODE(frequency_vector, coupling, phase_shift, 
+          new MKuramotoSakaguchiODE(frequency_vector, _coupling, _phase_shift, 
             this->_node_indices));
       
     }
