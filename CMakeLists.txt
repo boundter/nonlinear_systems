@@ -11,7 +11,7 @@ enable_testing()
 set(CMAKE_CXX_STANDARD 11)
 
 # include boost
-find_package(Boost 1.61.0 REQUIRED)
+find_package(Boost 1.61.0 COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # if g++ show all warnings

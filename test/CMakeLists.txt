@@ -36,4 +36,9 @@ if(NL_BUILD_TESTS)
     add_test(${sourcename} ${sourcename})
   endforeach(sourcefile ${sources}) 
 
+  # special compilation
+  add_executable(test_parse_arguments test_parse_arguments.cpp)
+  target_link_libraries(test_parse_arguments nonlinear_systems ${Boost_LIBRARIES})
+  add_test(test_parse_arguments test_parse_arguments)
+
 endif()
