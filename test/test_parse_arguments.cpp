@@ -54,3 +54,46 @@ BOOST_FIXTURE_TEST_CASE(multiple_arguments, F) {
   BOOST_CHECK_CLOSE(eps, 0.5, 0.01);
   BOOST_CHECK_EQUAL(filename, "b.csv");
 }
+
+
+BOOST_AUTO_TEST_CASE(double_vector_argument) {
+  std::vector<double> test_vector;
+  int argc = 4;
+  char* argv[] = {"test", "--N", "2", "32"};
+  std::vector<std::unique_ptr<ArgumentBase>> v;
+  v.emplace_back(new Argument<std::vector<double>>("N", "number oscillators",
+        test_vector, std::vector<double>()));
+  ParseArguments(argc, argv, v);
+  BOOST_REQUIRE_EQUAL(test_vector.size(), 2);
+  BOOST_CHECK_CLOSE(test_vector[0], 2, 0.01);
+  BOOST_CHECK_CLOSE(test_vector[1], 32, 0.01);
+}
+
+
+
+BOOST_AUTO_TEST_CASE(double_vector_argument_default) {
+  std::vector<double> test_vector;
+  int argc = 1;
+  char* argv[] = {"test"};
+  std::vector<std::unique_ptr<ArgumentBase>> v;
+  v.emplace_back(new Argument<std::vector<double>>("N", "number oscillators",
+        test_vector, {1., 2.}));
+  ParseArguments(argc, argv, v);
+  BOOST_REQUIRE_EQUAL(test_vector.size(), 2);
+  BOOST_CHECK_CLOSE(test_vector[0], 1, 0.01);
+  BOOST_CHECK_CLOSE(test_vector[1], 2, 0.01);
+}
+
+
+BOOST_AUTO_TEST_CASE(unsigned_int_vector_argument) {
+  std::vector<unsigned int> test_vector;
+  int argc = 4;
+  char* argv[] = {"test", "--N", "2", "32"};
+  std::vector<std::unique_ptr<ArgumentBase>> v;
+  v.emplace_back(new Argument<std::vector<unsigned int>>("N", "number oscillators",
+        test_vector, std::vector<unsigned int>()));
+  ParseArguments(argc, argv, v);
+  BOOST_REQUIRE_EQUAL(test_vector.size(), 2);
+  BOOST_CHECK_EQUAL(test_vector[0], 2);
+  BOOST_CHECK_EQUAL(test_vector[1], 32);
+}

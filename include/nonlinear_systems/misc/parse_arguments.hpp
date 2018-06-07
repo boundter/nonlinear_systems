@@ -3,10 +3,32 @@
 
 #include <iostream>
 #include <string>
+#include <memory>
 #include <vector>
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
+
+
+// https://stackoverflow.com/questions/40754810/default-value-for-vector-valued-boostprogram-options
+namespace std
+{
+  std::ostream& operator<<(std::ostream& os, const std::vector<double>& vec) {
+    for (auto item : vec) {
+      os << item << " ";
+    }
+    return os;
+  }
+  
+  
+  std::ostream& operator<<(std::ostream& os, const std::vector<unsigned int>& vec) {
+    for (auto item : vec) {
+      os << item << " ";
+    }
+    return os;
+  }
+}
+
 
 namespace nonlinear_systems {
 /*!
@@ -94,6 +116,22 @@ struct Argument: public ArgumentBase {
   }
 };
 
+
+// specialization for vectors
+template<> void Argument<std::vector<double>>
+::AddArgument(po::options_description& desc) {
+  desc.add_options()
+    (name.c_str(), po::value<std::vector<double>>()->multitoken()->
+     default_value(default_value), description.c_str());
+}
+
+
+template<> void Argument<std::vector<unsigned int>>
+::AddArgument(po::options_description& desc) {
+  desc.add_options()
+    (name.c_str(), po::value<std::vector<unsigned int>>()->multitoken()->
+     default_value(default_value), description.c_str());
+}
 
 /*!
  *  \brief Parse the command line arguments to variables.
