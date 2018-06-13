@@ -114,7 +114,7 @@ class GenericNetwork: protected GenericSystem<ode_type,
     /*!
      * Sets the parameters of the ODE.
      */
-    double SetParameters(void* parameters) {
+    void SetParameters(void* parameters) {
       GenericSystem<ode_type, state_type, stepper_type>::SetParameters(parameters);
     }
 
