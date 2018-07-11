@@ -16,6 +16,7 @@ if(NL_BUILD_TESTS)
     test_kuramoto_sakaguchi_ode.cpp
     test_rayleigh_mean_field_ode.cpp
     test_m_kuramoto_sakaguchi_ode.cpp
+    test_reduced_m_kuramoto_sakaguchi_watanabe_strogatz_ode.cpp
     # frameworks
     test_generic_system.cpp 
     test_generic_network.cpp
