@@ -42,4 +42,11 @@ if(NL_BUILD_TESTS)
   target_link_libraries(test_parse_arguments nonlinear_systems ${Boost_LIBRARIES})
   add_test(test_parse_arguments test_parse_arguments)
 
+  add_executable(test_reduced_m_kuramoto_sakaguchi_watanabe_strogatz_system
+                 test_reduced_m_kuramoto_sakaguchi_watanabe_strogatz_system.cpp) 
+  target_link_libraries(test_reduced_m_kuramoto_sakaguchi_watanabe_strogatz_system
+                        nonlinear_systems ${NLOPT_LIBRARIES})
+  add_test(test_reduced_m_kuramoto_sakaguchi_watanabe_strogatz_system
+           test_reduced_m_kuramoto_sakaguchi_watanabe_strogatz_system)
+
 endif()

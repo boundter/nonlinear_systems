@@ -2,9 +2,13 @@
 #define __REDUCED_M_KURAMOTO_SAKAGUCHI_WATANABE_STROGATZ_SYSTEM__
 
 #include <cmath>
+#include <exception>
+#include <iostream>
 #include <vector>
 #include <nonlinear_systems/odes/reduced_m_kuramoto_sakaguchi_watanabe_strogatz_ode.hpp>
 #include <nonlinear_systems/systems/generic_network.hpp>
+
+#include <nlopt.hpp>
 
 typedef std::vector<double> state_type;
 typedef std::vector<state_type> network_type;
@@ -19,6 +23,7 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
         const network_type& phases)
    :GenericNetwork<ReducedMKuramotoSakaguchiWatanabeStrogatzODE, double>(
        node_size_type(phases.size()), 3) {
+      this->_x.resize(3*phases.size());
       TransformPhasesToWS(phases);
       /*
       this->_ode = std::unique_ptr<ReducedMKuramotoSakaguchiWatanabeStrogatzODE>(
@@ -28,13 +33,12 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
 
 
     network_type CalculatePhases() {
-      network_type phases(_constants.size());
+      network_type phases;
       for (size_t i = 0; i < _constants.size(); ++i) {
-        phases[i].push_back(state_type(_constants[i].size()));
-        double rho = x[_node_indices[i]];
-        double Psi = x[_node_indices[i+1]];
-        double Phi = x[_node_indices[i+2]];
-        phases[i].push_back(TransformConstantsToPhases(_constants[i], rho, Psi, 
+        double rho = this->_x[_node_indices[i]];
+        double Psi = this->_x[_node_indices[i]+1];
+        double Phi = this->_x[_node_indices[i]+2];
+        phases.push_back(TransformConstantsToPhases(_constants[i], rho, Psi, 
               Phi));
       }
       return phases;
@@ -70,12 +74,17 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
       return mean_field;
     }
    
-
-    double CalculatePotential(const state_type& phases, double rho, double Phi) {
+    
+    // TODO: Rework for NLopt
+    // x[0] = rho, x[1] = Phi
+    static double CalculatePotential(const state_type& x, state_type& grad, 
+        void* args) {
+      // Does this work?
+      state_type phases = *reinterpret_cast<state_type*>(args);
       double sum = 0.;
       for (size_t i = 0; i < phases.size(); ++i) {
-        sum += log((1. + rho*rho - 2.*rho*cos(phases[i]-Phi))
-                   /((1. - rho*rho)/2.));
+        sum += log((1+x[0]*x[0] - 2*x[0]*cos(phases[i]-x[1]))
+                   /((1. - x[0]*x[0])/2.));
       }
       return sum/static_cast<double>(phases.size());
     }
@@ -91,17 +100,32 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
 
 
     void TransformPhasesToWS(const network_type& phases) {
-      _constants.resize(phases.size());
       for (size_t i = 0; i < phases.size(); ++i) {
-        state_type mean_field = CalculateKuramotoMeanField(phases[i]);
         // Initial guess
+        state_type mean_field = CalculateKuramotoMeanField(phases[i]);
+        // minimize the potential
+        nlopt::opt opt(nlopt::LN_SBPLX, 2);
+        state_type lower_bounds = {0., -M_PI};
+        state_type upper_bounds = {1., M_PI};
+        opt.set_lower_bounds(lower_bounds);
+        opt.set_upper_bounds(upper_bounds);
+        state_type current_phases = phases[i];
+        opt.set_min_objective(CalculatePotential, &current_phases);
+        opt.set_xtol_rel(1e-6);
+        double minimum;
+        try {
+          nlopt::result result = opt.optimize(mean_field, minimum);
+        }
+        catch(std::exception &e) {
+          std::cout << "Could not find minimum of potential for group " << i <<
+            " with nlopt error: " << e.what() << std::endl;
+        }
         double rho = mean_field[0];
         double Phi = mean_field[1];
-        // TODO: Somehow the potential is minimizmed and we get the correct rho, Phi
-        double Psi = CalculatePsi(phases, rho, Phi);
+        double Psi = CalculatePsi(current_phases, rho, Phi);
         // Make use of the transformation phases<->constants, Phi<->Psi,
         // rho->-rho, which changes the role of phases and constants
-        constants[i].push_back(TransformConstantsToPhases(phases, -rho, Phi, 
+        _constants.push_back(TransformConstantsToPhases(current_phases, -rho, Phi, 
               Psi));
         this->_x[this->_node_indices[i]] = rho;
         this->_x[this->_node_indices[i]+1] = Psi;
