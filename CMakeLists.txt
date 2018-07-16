@@ -14,6 +14,9 @@ set(CMAKE_CXX_STANDARD 11)
 find_package(Boost 1.61.0 COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
+find_package(NLopt 2.5.0)
+include_directories(${NLOPT_INCLUDE_DIRS})
+
 # if g++ show all warnings
 if(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "-w")
