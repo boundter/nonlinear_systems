@@ -20,11 +20,19 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
   public:
 
     ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(
-        const network_type& phases)
+        const network_type& phases, const char* conversion = "splay")
    :GenericNetwork<ReducedMKuramotoSakaguchiWatanabeStrogatzODE, double>(
-       node_size_type(phases.size()), 3) {
+       node_size_type(phases.size(), 1), 3) {
       this->_x.resize(3*phases.size());
-      TransformPhasesToWS(phases);
+      if (conversion == "splay") {
+        TransformPhasesToWS(phases);
+      }
+      else if (conversion == "identity") {
+        IdentityConversion(phases);
+      }
+      else {
+        throw std::invalid_argument("Unknown conversion.");
+      }
       /*
       this->_ode = std::unique_ptr<ReducedMKuramotoSakaguchiWatanabeStrogatzODE>(
           new ReducedMKuramotoSakaguchiWatanabeStrogatzODE());
@@ -49,6 +57,16 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
     network_type _constants;
 
 
+    void IdentityConversion(const network_type& phases) {
+      for (size_t i = 0; i < phases.size(); ++i) {
+        this->_x[_node_indices[i]] = 0.;
+        this->_x[_node_indices[i]+1] = 0.;
+        this->_x[_node_indices[i]+2] = 0.;
+        _constants.push_back(phases[i]);
+      }
+    }
+
+
     state_type TransformConstantsToPhases(const state_type& constants,
         double rho, double Psi, double Phi) {
       state_type phases(constants.size());
@@ -56,7 +74,7 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
         double cos_term = (1+rho*rho)*cos(constants[i]-Psi) + 2*rho;
         double sin_term = (1-rho*rho)*sin(constants[i]-Psi);
         double im = sin_term*cos(Phi) + cos_term*sin(Phi);
-        double re = cos_term*cos(Phi) - sin_term*cos(Phi);
+        double re = cos_term*cos(Phi) - sin_term*sin(Phi);
         phases[i] = atan2(im, re);
       }
       return phases;
@@ -75,7 +93,6 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
     }
    
     
-    // TODO: Rework for NLopt
     // x[0] = rho, x[1] = Phi
     static double CalculatePotential(const state_type& x, state_type& grad, 
         void* args) {
@@ -83,7 +100,7 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
       state_type phases = *reinterpret_cast<state_type*>(args);
       double sum = 0.;
       for (size_t i = 0; i < phases.size(); ++i) {
-        sum += log((1+x[0]*x[0] - 2*x[0]*cos(phases[i]-x[1]))
+        sum += log((1 + x[0]*x[0] - 2*x[0]*cos(phases[i]-x[1]))
                    /((1. - x[0]*x[0])/2.));
       }
       return sum/static_cast<double>(phases.size());
@@ -106,7 +123,7 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
         // minimize the potential
         nlopt::opt opt(nlopt::LN_SBPLX, 2);
         state_type lower_bounds = {0., -M_PI};
-        state_type upper_bounds = {1., M_PI};
+        state_type upper_bounds = {0.99, M_PI};
         opt.set_lower_bounds(lower_bounds);
         opt.set_upper_bounds(upper_bounds);
         state_type current_phases = phases[i];
@@ -127,9 +144,9 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
         // rho->-rho, which changes the role of phases and constants
         _constants.push_back(TransformConstantsToPhases(current_phases, -rho, Phi, 
               Psi));
-        this->_x[this->_node_indices[i]] = rho;
-        this->_x[this->_node_indices[i]+1] = Psi;
-        this->_x[this->_node_indices[i]+2] = Phi;
+        this->_x[_node_indices[i]] = rho;
+        this->_x[_node_indices[i]+1] = Psi;
+        this->_x[_node_indices[i]+2] = Phi;
       }
     }
 };
