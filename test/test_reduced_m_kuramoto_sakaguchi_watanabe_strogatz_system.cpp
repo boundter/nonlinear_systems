@@ -1,6 +1,8 @@
 #define BOOST_TEST_MODULE ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
 #include <boost/test/included/unit_test.hpp>
+#include <cmath>
 #include <nonlinear_systems/systems/reduced_m_kuramoto_sakaguchi_watanabe_strogatz_system.hpp>
+#include <nonlinear_systems/systems/m_kuramoto_sakaguchi_system.hpp>
 
 typedef std::vector<double> state_type;
 typedef std::vector<state_type> network_type;
@@ -164,4 +166,66 @@ BOOST_AUTO_TEST_CASE(simple_constructor) {
   BOOST_CHECK_SMALL(phases[1][0] - phases[1][3], 2*cluster_width);
   BOOST_CHECK_SMALL(phases[1][0] - phases[1][4], 2*cluster_width);
   BOOST_CHECK_SMALL(phases[1][0] - phases[1][5], 2*cluster_width);
+}
+
+
+BOOST_AUTO_TEST_CASE(integration_splay_random) {
+  double frequency = 0.5;
+  double repulsive_excess = 0.1;
+  node_size_type node_size = {4, 6};
+  unsigned int seed = 123456789;
+  double cluster_width = 0.1;
+  double cluster_distance = 0.25*M_PI;
+  
+  ReducedMKuramotoSakaguchiWatanabeStrogatzSystem ws_system(frequency,
+      repulsive_excess, node_size, "splay", "random", seed);
+  MKuramotoSakaguchiSystem kuramoto_system(frequency, repulsive_excess, 
+      node_size, seed);
+  // Same initial conditions
+  network_type ws_phases = ws_system.CalculatePhases();
+  network_type kuramoto_phases = kuramoto_system.GetNodes();
+  BOOST_REQUIRE_EQUAL(ws_phases.size(), kuramoto_phases.size());
+  BOOST_REQUIRE_EQUAL(ws_phases[0].size(), kuramoto_phases[0].size());
+  BOOST_CHECK_CLOSE(ws_phases[0][0], kuramoto_phases[0][0], 0.1);
+  BOOST_CHECK_CLOSE(ws_phases[0][1], kuramoto_phases[0][1], 0.1);
+  BOOST_CHECK_CLOSE(ws_phases[0][2], kuramoto_phases[0][2], 0.1);
+  BOOST_CHECK_CLOSE(ws_phases[0][3], kuramoto_phases[0][3], 0.1);
+  BOOST_REQUIRE_EQUAL(ws_phases[1].size(), kuramoto_phases[1].size());
+  BOOST_CHECK_CLOSE(ws_phases[1][0], kuramoto_phases[1][0], 0.1);
+  BOOST_CHECK_CLOSE(ws_phases[1][1], kuramoto_phases[1][1], 0.1);
+  BOOST_CHECK_CLOSE(ws_phases[1][2], kuramoto_phases[1][2], 0.1);
+  BOOST_CHECK_CLOSE(ws_phases[1][3], kuramoto_phases[1][3], 0.1);
+  BOOST_CHECK_CLOSE(ws_phases[1][4], kuramoto_phases[1][4], 0.1);
+  BOOST_CHECK_CLOSE(ws_phases[1][5], kuramoto_phases[1][5], 0.1);
+  
+  // Same final state
+  double dt = 0.01;
+  unsigned int number_steps = 1e3;
+  ws_system.Integrate(dt, number_steps);
+  kuramoto_system.Integrate(dt, number_steps);
+  ws_phases = ws_system.CalculatePhases();
+  kuramoto_phases = kuramoto_system.GetNodes();
+  BOOST_REQUIRE_EQUAL(ws_phases.size(), kuramoto_phases.size());
+  BOOST_REQUIRE_EQUAL(ws_phases[0].size(), kuramoto_phases[0].size());
+  BOOST_CHECK_CLOSE(fmod(ws_phases[0][0], 2*M_PI), 
+      fmod(kuramoto_phases[0][0] + 2*M_PI, 2*M_PI), 0.1);
+  BOOST_CHECK_CLOSE(fmod(ws_phases[0][1], 2*M_PI), 
+      fmod(kuramoto_phases[0][1] + 2*M_PI, 2*M_PI), 0.1);
+  BOOST_CHECK_CLOSE(fmod(ws_phases[0][2], 2*M_PI), 
+      fmod(kuramoto_phases[0][2] + 2*M_PI, 2*M_PI), 0.1);
+  BOOST_CHECK_CLOSE(fmod(ws_phases[0][3], 2*M_PI), 
+      fmod(kuramoto_phases[0][3] + 2*M_PI, 2*M_PI), 0.1);
+  BOOST_REQUIRE_EQUAL(ws_phases[1].size(), kuramoto_phases[1].size());
+  BOOST_CHECK_CLOSE(fmod(ws_phases[1][0] + 2*M_PI, 2*M_PI), 
+      fmod(kuramoto_phases[1][0], 2*M_PI), 0.1);
+  BOOST_CHECK_CLOSE(fmod(ws_phases[1][1] + 2*M_PI, 2*M_PI), 
+      fmod(kuramoto_phases[1][1], 2*M_PI), 0.1);
+  BOOST_CHECK_CLOSE(fmod(ws_phases[1][2] + 2*M_PI, 2*M_PI), 
+      fmod(kuramoto_phases[1][2], 2*M_PI), 0.1);
+  BOOST_CHECK_CLOSE(fmod(ws_phases[1][3] + 2*M_PI, 2*M_PI), 
+      fmod(kuramoto_phases[1][3], 2*M_PI), 0.1);
+  BOOST_CHECK_CLOSE(fmod(ws_phases[1][4] + 2*M_PI, 2*M_PI), 
+      fmod(kuramoto_phases[1][4], 2*M_PI), 0.1);
+  BOOST_CHECK_CLOSE(fmod(ws_phases[1][5] + 2*M_PI, 2*M_PI), 
+      fmod(kuramoto_phases[1][5], 2*M_PI), 0.1);
 }
