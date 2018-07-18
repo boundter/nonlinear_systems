@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 #include <nonlinear_systems/odes/reduced_m_kuramoto_sakaguchi_watanabe_strogatz_ode.hpp>
+#include <nonlinear_systems/systems/m_kuramoto_sakaguchi_system.hpp>
 #include <nonlinear_systems/systems/generic_network.hpp>
 
 #include <nlopt.hpp>
@@ -26,6 +27,50 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
    :GenericNetwork<ReducedMKuramotoSakaguchiWatanabeStrogatzODE, double>(
        node_size_type(phases.size(), 1), 3),
     _coupling(coupling), _phase_shift(phase_shift), _frequency(frequency) {
+      this->_x.resize(3*phases.size());
+      // TODO: Check for size
+      if (conversion == "splay") {
+        TransformPhasesToWS(phases);
+      }
+      else if (conversion == "identity") {
+        IdentityConversion(phases);
+      }
+      else {
+        throw std::invalid_argument("Unknown conversion.");
+      }
+      _N = 0;
+      for (size_t i = 0; i < phases.size(); ++i) {
+        _N += static_cast<unsigned int>(phases[i].size());
+      }
+      this->_ode = std::unique_ptr<ReducedMKuramotoSakaguchiWatanabeStrogatzODE>(
+          new ReducedMKuramotoSakaguchiWatanabeStrogatzODE(_constants, 
+            _coupling, _phase_shift, _frequency, _N, _node_indices));
+    }
+
+
+    ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(
+      double frequency, double repulsive_excess, const node_size_type& node_size,
+      const char* conversion = "splay", const char* initial = "clusters",
+      unsigned int seed=123456789, double cluster_width = 0.01, 
+      double cluster_distance = 0.25*M_PI)
+    :GenericNetwork<ReducedMKuramotoSakaguchiWatanabeStrogatzODE, double>(
+        node_size_type(node_size.size(), 1), 3) {
+      _frequency = {0., frequency};
+      _coupling = {1., -(1.+repulsive_excess)};
+      _phase_shift = {0., 0.};
+      MKuramotoSakaguchiSystem kuramoto(frequency, repulsive_excess, node_size,
+          seed);
+      network_type phases;
+      if (initial == "random") {
+        phases = kuramoto.GetNodes();
+      }
+      else if (initial == "clusters") {
+        kuramoto.SetPerturbedClusters(cluster_width, cluster_distance);
+        phases = kuramoto.GetNodes();
+      }
+      else {
+        throw std::invalid_argument("Unknown initial condition.");
+      }
       this->_x.resize(3*phases.size());
       // TODO: Check for size
       if (conversion == "splay") {
@@ -133,7 +178,7 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
         // minimize the potential
         nlopt::opt opt(nlopt::LN_SBPLX, 2);
         state_type lower_bounds = {0., -M_PI};
-        state_type upper_bounds = {0.99, M_PI};
+        state_type upper_bounds = {0.99999999, M_PI};
         opt.set_lower_bounds(lower_bounds);
         opt.set_upper_bounds(upper_bounds);
         state_type current_phases = phases[i];

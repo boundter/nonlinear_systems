@@ -109,8 +109,59 @@ BOOST_AUTO_TEST_CASE(back_conversion_splay) {
 }
 
 
-BOOST_AUTO_TEST_CASE(integration_identity) {
-  network_type phases = {{0.1, -0.2*M_PI, -0.2, 0.5},
-                         {1.3, 1.5, M_PI, M_PI/2.}};
-  
+BOOST_AUTO_TEST_CASE(simple_constructor) {
+  double frequency = 1.;
+  double repulsive_excess = 2.;
+  node_size_type node_size = {4, 6};
+  unsigned int seed = 123456789;
+  double cluster_width = 0.01;
+  double cluster_distance = 0.25*M_PI;
+  BOOST_REQUIRE_THROW(
+      ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(frequency, 
+        repulsive_excess, node_size, "foo", "clusters", seed, cluster_width,
+        cluster_distance), std::invalid_argument);
+  BOOST_REQUIRE_THROW(
+      ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(frequency, 
+        repulsive_excess, node_size, "splay", "foo", seed, cluster_width,
+        cluster_distance), std::invalid_argument);
+  BOOST_REQUIRE_THROW(
+      ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(frequency, 
+        repulsive_excess, node_size, "foo", "bar", seed, cluster_width,
+        cluster_distance), std::invalid_argument);
+  BOOST_REQUIRE_NO_THROW(
+      ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(frequency, 
+        repulsive_excess, node_size, "splay", "clusters", seed, cluster_width,
+        cluster_distance));
+  BOOST_REQUIRE_NO_THROW(
+      ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(frequency, 
+        repulsive_excess, node_size, "identity", "clusters", seed, cluster_width,
+        cluster_distance));
+  BOOST_REQUIRE_NO_THROW(
+      ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(frequency, 
+        repulsive_excess, node_size, "splay", "random", seed, cluster_width,
+        cluster_distance));
+  BOOST_REQUIRE_NO_THROW(
+      ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(frequency, 
+        repulsive_excess, node_size, "identity", "random", seed, cluster_width,
+        cluster_distance));
+  ReducedMKuramotoSakaguchiWatanabeStrogatzSystem random_system(frequency, 
+    repulsive_excess, node_size, "identity", "random");
+  network_type phases = random_system.CalculatePhases();
+  BOOST_REQUIRE_EQUAL(phases.size(), node_size.size());
+  BOOST_REQUIRE_EQUAL(phases[0].size(), node_size[0]);
+  BOOST_REQUIRE_EQUAL(phases[1].size(), node_size[1]);
+  ReducedMKuramotoSakaguchiWatanabeStrogatzSystem cluster_system(frequency, 
+    repulsive_excess, node_size, "identity", "clusters");
+  phases = cluster_system.CalculatePhases();
+  BOOST_REQUIRE_EQUAL(phases.size(), node_size.size());
+  BOOST_REQUIRE_EQUAL(phases[0].size(), node_size[0]);
+  BOOST_CHECK_SMALL(phases[0][0] - phases[0][1], 2*cluster_width);
+  BOOST_CHECK_SMALL(phases[0][0] - phases[0][2], 2*cluster_width);
+  BOOST_CHECK_SMALL(phases[0][0] - phases[0][3], 2*cluster_width);
+  BOOST_REQUIRE_EQUAL(phases[1].size(), node_size[1]);
+  BOOST_CHECK_SMALL(phases[1][0] - phases[1][1], 2*cluster_width);
+  BOOST_CHECK_SMALL(phases[1][0] - phases[1][2], 2*cluster_width);
+  BOOST_CHECK_SMALL(phases[1][0] - phases[1][3], 2*cluster_width);
+  BOOST_CHECK_SMALL(phases[1][0] - phases[1][4], 2*cluster_width);
+  BOOST_CHECK_SMALL(phases[1][0] - phases[1][5], 2*cluster_width);
 }
