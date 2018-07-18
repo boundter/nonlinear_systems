@@ -10,20 +10,30 @@ using namespace nonlinear_systems;
 BOOST_AUTO_TEST_CASE(unknown_conversion) {
   network_type phases = {{0.1, -0.2*M_PI, -0.2, 0.5},
                          {1.3, 1.5, M_PI, M_PI/2.}};
+  state_type coupling = {1., 2.};
+  state_type phase_shift = {1., 2.};
+  state_type frequency = {1., 2.};
   BOOST_REQUIRE_THROW(
-  ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(phases, "foo"), 
+  ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(phases, frequency, coupling, 
+    phase_shift, "foo"), 
   std::invalid_argument);
   BOOST_REQUIRE_NO_THROW(
-  ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(phases, "identity"));
+  ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(phases, frequency, coupling, 
+    phase_shift, "identity"));
   BOOST_REQUIRE_NO_THROW(
-  ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(phases, "splay"));
+  ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(phases, frequency, coupling, 
+    phase_shift, "splay"));
 }
 
 
 BOOST_AUTO_TEST_CASE(identity_conversion) {
   network_type phases = {{0.1, -0.2*M_PI, -0.2, 0.5},
                          {1.3, 1.5, M_PI, M_PI/2.}};
-  ReducedMKuramotoSakaguchiWatanabeStrogatzSystem system(phases, "identity");
+  state_type coupling = {1., 2.};
+  state_type phase_shift = {1., 2.};
+  state_type frequency = {1., 2.};
+  ReducedMKuramotoSakaguchiWatanabeStrogatzSystem system(phases, frequency, 
+      coupling, phase_shift, "identity");
   state_type state = system.GetPosition();
   BOOST_REQUIRE_EQUAL(state.size(), 6);
   BOOST_CHECK_SMALL(state[0], 0.01);
@@ -38,7 +48,11 @@ BOOST_AUTO_TEST_CASE(identity_conversion) {
 BOOST_AUTO_TEST_CASE(back_conversion_identity) {
   network_type phases = {{0.1, -0.2*M_PI, -0.2, 0.5},
                          {1.3, 1.5, M_PI, M_PI/2.}};
-  ReducedMKuramotoSakaguchiWatanabeStrogatzSystem system(phases, "identity");
+  state_type coupling = {1., 2.};
+  state_type phase_shift = {1., 2.};
+  state_type frequency = {1., 2.};
+  ReducedMKuramotoSakaguchiWatanabeStrogatzSystem system(phases, frequency, 
+      coupling, phase_shift, "identity");
   network_type new_phases = system.CalculatePhases();
   BOOST_REQUIRE_EQUAL(new_phases.size(), phases.size());
   BOOST_REQUIRE_EQUAL(new_phases[0].size(), phases[0].size());
@@ -56,7 +70,11 @@ BOOST_AUTO_TEST_CASE(back_conversion_identity) {
 BOOST_AUTO_TEST_CASE(splay_conversion) {
   network_type phases = {{0.1, -0.2*M_PI, -0.2, 0.5},
                          {1.3, 1.5, M_PI, M_PI/2.}};
-  ReducedMKuramotoSakaguchiWatanabeStrogatzSystem system(phases, "splay");
+  state_type coupling = {1., 2.};
+  state_type phase_shift = {1., 2.};
+  state_type frequency = {1., 2.};
+  ReducedMKuramotoSakaguchiWatanabeStrogatzSystem system(phases, frequency, 
+      coupling, phase_shift, "splay");
   state_type state = system.GetPosition();
   BOOST_REQUIRE_EQUAL(state.size(), 6);
   BOOST_CHECK_CLOSE(state[0], 0.74295, 0.1);
@@ -71,7 +89,11 @@ BOOST_AUTO_TEST_CASE(splay_conversion) {
 BOOST_AUTO_TEST_CASE(back_conversion_splay) {
   network_type phases = {{0.1, -0.2*M_PI, -0.2, 0.5},
                          {1.3, 1.5, M_PI, M_PI/2.}};
-  ReducedMKuramotoSakaguchiWatanabeStrogatzSystem system(phases, "splay");
+  state_type coupling = {1., 2.};
+  state_type phase_shift = {1., 2.};
+  state_type frequency = {1., 2.};
+  ReducedMKuramotoSakaguchiWatanabeStrogatzSystem system(phases, frequency, 
+      coupling, phase_shift, "splay");
   network_type new_phases = system.CalculatePhases();
   BOOST_REQUIRE_EQUAL(new_phases.size(), phases.size());
   BOOST_REQUIRE_EQUAL(new_phases[0].size(), phases[0].size());
@@ -84,4 +106,11 @@ BOOST_AUTO_TEST_CASE(back_conversion_splay) {
   BOOST_CHECK_CLOSE(new_phases[1][1], phases[1][1], 0.1);
   BOOST_CHECK_CLOSE(new_phases[1][2], phases[1][2], 0.1);
   BOOST_CHECK_CLOSE(new_phases[1][3], phases[1][3], 0.1);
+}
+
+
+BOOST_AUTO_TEST_CASE(integration_identity) {
+  network_type phases = {{0.1, -0.2*M_PI, -0.2, 0.5},
+                         {1.3, 1.5, M_PI, M_PI/2.}};
+  
 }

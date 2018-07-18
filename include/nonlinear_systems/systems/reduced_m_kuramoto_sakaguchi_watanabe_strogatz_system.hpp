@@ -20,10 +20,14 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
   public:
 
     ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(
-        const network_type& phases, const char* conversion = "splay")
+        const network_type& phases, const state_type& frequency, 
+        const state_type& coupling, const state_type& phase_shift,
+        const char* conversion = "splay")
    :GenericNetwork<ReducedMKuramotoSakaguchiWatanabeStrogatzODE, double>(
-       node_size_type(phases.size(), 1), 3) {
+       node_size_type(phases.size(), 1), 3),
+    _coupling(coupling), _phase_shift(phase_shift), _frequency(frequency) {
       this->_x.resize(3*phases.size());
+      // TODO: Check for size
       if (conversion == "splay") {
         TransformPhasesToWS(phases);
       }
@@ -33,10 +37,13 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
       else {
         throw std::invalid_argument("Unknown conversion.");
       }
-      /*
+      _N = 0;
+      for (size_t i = 0; i < phases.size(); ++i) {
+        _N += static_cast<unsigned int>(phases[i].size());
+      }
       this->_ode = std::unique_ptr<ReducedMKuramotoSakaguchiWatanabeStrogatzODE>(
-          new ReducedMKuramotoSakaguchiWatanabeStrogatzODE());
-      */
+          new ReducedMKuramotoSakaguchiWatanabeStrogatzODE(_constants, 
+            _coupling, _phase_shift, _frequency, _N, _node_indices));
     }
 
 
@@ -55,7 +62,10 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
   
   protected:
     network_type _constants;
-
+    state_type _coupling;
+    state_type _phase_shift;
+    state_type _frequency;
+    unsigned int _N;
 
     void IdentityConversion(const network_type& phases) {
       for (size_t i = 0; i < phases.size(); ++i) {
