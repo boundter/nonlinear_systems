@@ -158,7 +158,10 @@ template<> std::string Argument<std::vector<double>>
 ::GetValueAsString() {
   std::stringstream ss;
   for (auto it = value.begin(); it != value.end(); ++it) {
-    ss << " " << (*it);
+    ss << (*it);
+    if (it + 1 != value.end()) {
+      ss << ",";
+    }
   }
   return ss.str();
 }
@@ -168,7 +171,10 @@ template<> std::string Argument<std::vector<unsigned int>>
 ::GetValueAsString() {
   std::stringstream ss;
   for (auto it = value.begin(); it != value.end(); ++it) {
-    ss << " " << (*it);
+    ss << (*it);
+    if (it + 1 != value.end()) {
+      ss << ",";
+    }
   }
   return ss.str();
 }
@@ -214,6 +220,31 @@ class ParseArguments {
       (*it)->ParseArgument(vmap);
     }
   }
+};
+
+
+class WriteArgumentsToFile {
+  public:
+    std::vector<std::unique_ptr<ArgumentBase>>& arguments;
+    FILE* file;
+
+    WriteArgumentsToFile(std::vector<std::unique_ptr<ArgumentBase>>& arguments,
+        FILE* outputfile)
+      :arguments(arguments), file(outputfile) {
+        fprintf(file, "#");
+        WriteArguments();
+        fprintf(file, "\n");
+        fflush(file);
+      }
+
+  protected:
+
+    void WriteArguments() {
+      for (auto it = arguments.begin(); it != arguments.end(); ++it) {
+        fprintf(file, " %s=%s", (*it)->GetName().c_str(), 
+            (*it)->GetValueAsString().c_str());
+      }
+    }
 };
 } // nonlinear_systems
 #endif

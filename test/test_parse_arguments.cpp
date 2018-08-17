@@ -2,6 +2,7 @@
 #include <boost/test/included/unit_test.hpp>
 #include <vector>
 #include <string>
+#include <iostream>
 #include <nonlinear_systems/misc/parse_arguments.hpp>
 
 using namespace nonlinear_systems;
@@ -10,7 +11,7 @@ using namespace nonlinear_systems;
 struct F {
 
   F() {
-    v.emplace_back(new Argument<unsigned int>("oscillators", "N", 
+    v.emplace_back(new Argument<unsigned int>("oscillators", "N",
           "number oscillators", N, N_0));
     v.emplace_back(new Argument<double>("epsilon", "coupling", eps, eps_0));
     v.emplace_back(new Argument<std::string>("filename", "output", filename, filename_0));
@@ -65,7 +66,7 @@ BOOST_AUTO_TEST_CASE(get_value_string) {
 BOOST_AUTO_TEST_CASE(get_value_vector_double) {
   std::vector<double> value = {1.3, 2.5};
   Argument<std::vector<double>> argument("aa", "Whatever", value, value);
-  std::string value_string = " 1.3 2.5";
+  std::string value_string = "1.3,2.5";
   BOOST_CHECK_EQUAL(argument.GetValueAsString(), value_string);
 }
 
@@ -73,7 +74,7 @@ BOOST_AUTO_TEST_CASE(get_value_vector_double) {
 BOOST_AUTO_TEST_CASE(get_value_vector_unsigned_int) {
   std::vector<unsigned int> value = {2, 3};
   Argument<std::vector<unsigned int>> argument("aa", "Whatever", value, value);
-  std::string value_string = " 2 3";
+  std::string value_string = "2,3";
   BOOST_CHECK_EQUAL(argument.GetValueAsString(), value_string);
 }
 
@@ -147,4 +148,24 @@ BOOST_AUTO_TEST_CASE(unsigned_int_vector_argument) {
   BOOST_REQUIRE_EQUAL(test_vector.size(), 2);
   BOOST_CHECK_EQUAL(test_vector[0], 2);
   BOOST_CHECK_EQUAL(test_vector[1], 32);
+}
+
+
+BOOST_FIXTURE_TEST_CASE(write_to_file, F) {
+  std::vector<double> foo, foo_0 = {1.5, 2.1};
+  v.emplace_back(new Argument<std::vector<double>>("foo", "some foo", foo, foo_0));
+  
+  int argc = 10;
+  char* argv[] = {"test", "--oscillators", "50", "--filename", "a.csv", 
+    "--epsilon", "0.5", "--foo", "1.5", "2.1"};
+  std::string header = "# oscillators=50 epsilon=0.500000 filename=a.csv foo=1.5,2.1";
+  ParseArguments(argc, argv, v);
+  FILE* outfile = fopen("test_parser.csv", "w");
+  WriteArgumentsToFile(v, outfile);
+  fclose(outfile);
+  std::ifstream infile;
+  infile.open("test_parser.csv");
+  std::string written;
+  std::getline(infile, written);
+  BOOST_CHECK_EQUAL(written, header);
 }
