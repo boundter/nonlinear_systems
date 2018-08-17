@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <sstream>
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
@@ -61,6 +62,12 @@ struct ArgumentBase {
   virtual void AddArgument(po::options_description& desc) {}
 
   virtual void ParseArgument(po::variables_map& vmap) {}
+
+  std::string GetName() {
+    return long_name;
+  }
+
+  virtual std::string GetValueAsString() {}
 };
 
 
@@ -114,7 +121,19 @@ struct Argument: public ArgumentBase {
       value = vmap[long_name].as<T>();
     }
   }
+
+
+  std::string GetValueAsString() {
+    return std::to_string(value);
+  }
 };
+
+
+// specialization for strings
+template<> std::string Argument<std::string>
+::GetValueAsString() {
+  return value;
+}
 
 
 // specialization for vectors
@@ -132,6 +151,28 @@ template<> void Argument<std::vector<unsigned int>>
     (name.c_str(), po::value<std::vector<unsigned int>>()->multitoken()->
      default_value(default_value), description.c_str());
 }
+
+
+// https://stackoverflow.com/questions/1430757
+template<> std::string Argument<std::vector<double>>
+::GetValueAsString() {
+  std::stringstream ss;
+  for (auto it = value.begin(); it != value.end(); ++it) {
+    ss << " " << (*it);
+  }
+  return ss.str();
+}
+
+
+template<> std::string Argument<std::vector<unsigned int>>
+::GetValueAsString() {
+  std::stringstream ss;
+  for (auto it = value.begin(); it != value.end(); ++it) {
+    ss << " " << (*it);
+  }
+  return ss.str();
+}
+
 
 /*!
  *  \brief Parse the command line arguments to variables.

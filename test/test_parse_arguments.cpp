@@ -26,6 +26,57 @@ struct F {
   std::vector<std::unique_ptr<ArgumentBase>> v;
 };
 
+
+BOOST_AUTO_TEST_CASE(get_name) {
+  std::string name = "aa";
+  std::string description = "Whatever";
+  ArgumentBase base(name, description);
+  BOOST_CHECK_EQUAL(base.GetName(), name);
+  double dummy_value;
+  Argument<double> argument(name, description, dummy_value, 0.0);
+  BOOST_CHECK_EQUAL(argument.GetName(), name);
+}
+
+
+BOOST_AUTO_TEST_CASE(get_value_double) {
+  double value = 1.5;
+  Argument<double> argument("aa", "Whatever", value, 0.);
+  std::string value_string = std::to_string(value);
+  BOOST_CHECK_EQUAL(argument.GetValueAsString(), value_string);
+}
+
+
+BOOST_AUTO_TEST_CASE(get_value_int) {
+  int value = 1;
+  Argument<int> argument("aa", "Whatever", value, 0);
+  std::string value_string = std::to_string(value);
+  BOOST_CHECK_EQUAL(argument.GetValueAsString(), value_string);
+}
+
+
+BOOST_AUTO_TEST_CASE(get_value_string) {
+  std::string value = "Test";
+  Argument<std::string> argument("aa", "Whatever", value, value);
+  std::string value_string = value;
+  BOOST_CHECK_EQUAL(argument.GetValueAsString(), value_string);
+}
+
+
+BOOST_AUTO_TEST_CASE(get_value_vector_double) {
+  std::vector<double> value = {1.3, 2.5};
+  Argument<std::vector<double>> argument("aa", "Whatever", value, value);
+  std::string value_string = " 1.3 2.5";
+  BOOST_CHECK_EQUAL(argument.GetValueAsString(), value_string);
+}
+
+
+BOOST_AUTO_TEST_CASE(get_value_vector_unsigned_int) {
+  std::vector<unsigned int> value = {2, 3};
+  Argument<std::vector<unsigned int>> argument("aa", "Whatever", value, value);
+  std::string value_string = " 2 3";
+  BOOST_CHECK_EQUAL(argument.GetValueAsString(), value_string);
+}
+
 BOOST_FIXTURE_TEST_CASE(default_values, F) {
   int argc = 1;
   char* argv[] = {"test"};
