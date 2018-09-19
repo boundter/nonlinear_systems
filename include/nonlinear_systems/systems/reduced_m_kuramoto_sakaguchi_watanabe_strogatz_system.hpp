@@ -29,10 +29,10 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
     _coupling(coupling), _phase_shift(phase_shift), _frequency(frequency) {
       this->_x.resize(3*phases.size());
       // TODO: Check for size
-      if (conversion == "splay") {
+      if (strcmp(conversion, "splay") == 0) {
         TransformPhasesToWS(phases);
       }
-      else if (conversion == "identity") {
+      else if (strcmp(conversion, "identity") == 0) {
         IdentityConversion(phases);
       }
       else {
@@ -61,10 +61,10 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
       MKuramotoSakaguchiSystem kuramoto(frequency, repulsive_excess, node_size,
           seed);
       network_type phases;
-      if (initial == "random") {
+      if (strcmp(initial, "random") == 0) {
         phases = kuramoto.GetNodes();
       }
-      else if (initial == "clusters") {
+      else if (strcmp(initial, "clusters") == 0) {
         kuramoto.SetPerturbedClusters(cluster_width, cluster_distance);
         phases = kuramoto.GetNodes();
       }
@@ -73,10 +73,10 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
       }
       this->_x.resize(3*phases.size());
       // TODO: Check for size
-      if (conversion == "splay") {
+      if (strcmp(conversion, "splay") == 0) {
         TransformPhasesToWS(phases);
       }
-      else if (conversion == "identity") {
+      else if (strcmp(conversion, "identity") == 0) {
         IdentityConversion(phases);
       }
       else {
