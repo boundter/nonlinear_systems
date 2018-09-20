@@ -84,6 +84,11 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
       }
       return phases;
     }
+
+
+    network_type GetConstants() {
+      return _constants;
+    }
   
   
   protected:
