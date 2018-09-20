@@ -22,22 +22,13 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
 
     ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(
         const network_type& phases, const state_type& frequency, 
-        const state_type& coupling, const state_type& phase_shift,
-        const char* conversion = "splay")
+        const state_type& coupling, const state_type& phase_shift)
    :GenericNetwork<ReducedMKuramotoSakaguchiWatanabeStrogatzODE, double>(
        node_size_type(phases.size(), 1), 3),
     _coupling(coupling), _phase_shift(phase_shift), _frequency(frequency) {
       this->_x.resize(3*phases.size());
       // TODO: Check for size
-      if (strcmp(conversion, "splay") == 0) {
-        TransformPhasesToWS(phases);
-      }
-      else if (strcmp(conversion, "identity") == 0) {
-        IdentityConversion(phases);
-      }
-      else {
-        throw std::invalid_argument("Unknown conversion.");
-      }
+      TransformPhasesToWS(phases);
       _N = 0;
       for (size_t i = 0; i < phases.size(); ++i) {
         _N += static_cast<unsigned int>(phases[i].size());
@@ -50,9 +41,8 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
 
     ReducedMKuramotoSakaguchiWatanabeStrogatzSystem(
       double frequency, double repulsive_excess, const node_size_type& node_size,
-      const char* conversion = "splay", const char* initial = "clusters",
-      unsigned int seed=123456789, double cluster_width = 0.01, 
-      double cluster_distance = 0.25*M_PI)
+      const char* initial = "clusters", unsigned int seed=123456789, 
+      double cluster_width = 0.01, double cluster_distance = 0.25*M_PI)
     :GenericNetwork<ReducedMKuramotoSakaguchiWatanabeStrogatzODE, double>(
         node_size_type(node_size.size(), 1), 3) {
       _frequency = {0., frequency};
@@ -72,16 +62,7 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
         throw std::invalid_argument("Unknown initial condition.");
       }
       this->_x.resize(3*phases.size());
-      // TODO: Check for size
-      if (strcmp(conversion, "splay") == 0) {
-        TransformPhasesToWS(phases);
-      }
-      else if (strcmp(conversion, "identity") == 0) {
-        IdentityConversion(phases);
-      }
-      else {
-        throw std::invalid_argument("Unknown conversion.");
-      }
+      TransformPhasesToWS(phases);
       _N = 0;
       for (size_t i = 0; i < phases.size(); ++i) {
         _N += static_cast<unsigned int>(phases[i].size());
@@ -111,15 +92,6 @@ class ReducedMKuramotoSakaguchiWatanabeStrogatzSystem
     state_type _phase_shift;
     state_type _frequency;
     unsigned int _N;
-
-    void IdentityConversion(const network_type& phases) {
-      for (size_t i = 0; i < phases.size(); ++i) {
-        this->_x[_node_indices[i]] = 0.;
-        this->_x[_node_indices[i]+1] = 0.;
-        this->_x[_node_indices[i]+2] = 0.;
-        _constants.push_back(phases[i]);
-      }
-    }
 
 
     state_type TransformConstantsToPhases(const state_type& constants,
