@@ -1,5 +1,5 @@
 #ifndef __M_KURAMOTO_SAKAGUCHI_SYSTEM__
-#define __M_KURAMOTO_SAKAGUCHI_SYSTEM__ 
+#define __M_KURAMOTO_SAKAGUCHI_SYSTEM__
 
 #include <cmath>
 #include <functional>
@@ -19,7 +19,7 @@ namespace nonlinear_systems {
  * oscillators, where each group can have a different coupling and phase shift.
  * The ODE for an oscillator reads
  * \f[ \dot{\varphi}_i^{\sigma} = \omega_i + \sum_{\sigma' = 1}^M
- * \frac{K_{\sigma\sigma'}}{N} \sum_{j=1}^{N_{\sigma'}} 
+ * \frac{K_{\sigma\sigma'}}{N} \sum_{j=1}^{N_{\sigma'}}
  * \sin(\varphi_j^{\sigma'} - \varphi_i^{\sigma} + \alpha_{\sigma\sigma'}) \f]
  */
 class MKuramotoSakaguchiSystem
@@ -34,7 +34,7 @@ class MKuramotoSakaguchiSystem
      * @param node_size the size of the groups/nodes.
      * @param seed the seed used for the internal random number generator.
      */
-    MKuramotoSakaguchiSystem(const state_type& frequency, 
+    MKuramotoSakaguchiSystem(const state_type& frequency,
         const network_type& coupling, const network_type& phase_shift,
         const node_size_type& node_size, unsigned int seed=123456789)
       :GenericNetwork<MKuramotoSakaguchiODE, double>(node_size, 1) {
@@ -43,7 +43,7 @@ class MKuramotoSakaguchiSystem
       _coupling = coupling;
       _phase_shift = phase_shift;
       this->_ode = std::unique_ptr<MKuramotoSakaguchiODE>(
-          new MKuramotoSakaguchiODE(frequency, _coupling, _phase_shift, 
+          new MKuramotoSakaguchiODE(frequency, _coupling, _phase_shift,
             this->_node_indices));
     }
 
@@ -64,11 +64,11 @@ class MKuramotoSakaguchiSystem
     MKuramotoSakaguchiSystem(double frequency, double repulsive_excess,
         const node_size_type& node_size, unsigned int seed=123456789)
       :GenericNetwork<MKuramotoSakaguchiODE, double>(node_size, 1) {
-      _rng.seed(seed); 
+      _rng.seed(seed);
       SetRandomUniformState();
       state_type frequency_vector(this->_node_indices.back());
       for (size_t i = this->_node_indices[1]; i < frequency_vector.size(); ++i) {
-        frequency_vector[i] = frequency;   
+        frequency_vector[i] = frequency;
       }
       // defining this also implicitly checks for the correct system size
       state_type coupling_row = {1., -(1.+repulsive_excess)};
@@ -76,9 +76,20 @@ class MKuramotoSakaguchiSystem
       state_type zero_row = {0., 0.};
       _phase_shift = {zero_row, zero_row};
       this->_ode = std::unique_ptr<MKuramotoSakaguchiODE>(
-          new MKuramotoSakaguchiODE(frequency_vector, _coupling, _phase_shift, 
+          new MKuramotoSakaguchiODE(frequency_vector, _coupling, _phase_shift,
             this->_node_indices));
-      
+
+    }
+
+
+    /*!
+     *  Set a new frequency.
+     *  TODO: Test
+     */
+    void SetFrequency(const state_type& new_frequency) {
+      this->_ode = std::unique_ptr<MKuramotoSakaguchiODE>(
+        new MKuramotoSakaguchiODE(new_frequency, this->_ode->_coupling,
+          this->_ode->_phase_shift, this->_node_indices));
     }
 
 
@@ -88,7 +99,7 @@ class MKuramotoSakaguchiSystem
     void SetRandomUniformState() {
       std::uniform_real_distribution<double> uniform(-M_PI, M_PI);
       std::function<double()> uniform_dist = std::bind(uniform, std::ref(_rng));
-      this->_x = SampleDistribution<state_type, double>(this->_x.size(), 
+      this->_x = SampleDistribution<state_type, double>(this->_x.size(),
           &uniform_dist);
     }
 
@@ -109,11 +120,11 @@ class MKuramotoSakaguchiSystem
         cluster_position.push_back(i*cluster_distance);
       }
       for (size_t i = 0; i < this->_node_indices.size() - 1; ++i) {
-        double distance_between_oscillators = 
+        double distance_between_oscillators =
           cluster_width/(static_cast<double>(this->_node_sizes[i]) - 1.);
-        for (unsigned int j = this->_node_indices[i]; 
+        for (unsigned int j = this->_node_indices[i];
             j < this->_node_indices[i+1]; ++j) {
-          this->_x[j] = cluster_position[i] - cluster_width/2. 
+          this->_x[j] = cluster_position[i] - cluster_width/2.
             + distance_between_oscillators*(j - this->_node_indices[i]);
         }
       }
@@ -148,8 +159,8 @@ class MKuramotoSakaguchiSystem
 
     /*!
      *  The forcing generalizes the mean field for the M-Kuramoto-Sakaguchi
-     *  system. With it the differential equation can be reduced. The forcing is 
-     *  \f[ H_{\sigma} = \sum_{\sigma'} K_{\sigma\sigma'} 
+     *  system. With it the differential equation can be reduced. The forcing is
+     *  \f[ H_{\sigma} = \sum_{\sigma'} K_{\sigma\sigma'}
      *  \frac{N_\sigma'}{N} Z_{\sigma'}e^{i\alpha_{\sigma\sigma'}}. \f]
      *
      *  This seems to be wrong right now.
