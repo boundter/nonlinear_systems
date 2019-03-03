@@ -1,14 +1,25 @@
 # Nonlinear Systems
 
-Nonlinear Systems contains a generic interface for integrating ordinary differential equations. This reduces the repetitive work of integrating such systems.
+Nonlinear Systems contains a generic interface for integrating ordinary differential equations (ODEs). This reduces the repetitive work of integrating such systems.
+
+## Used tools
+- C++
+- CMake to build, install and test
+- Doxygen for documentation
+- Boost
+  - odeint for integration of the ODEs
+  - program_options for adding command line arguments
+  - test for executing the unit-tests
+- [NLopt](https://github.com/stevengj/nlopt) (may become voluntary in the future)
 
 ## Getting Started
-This is (for now) a header-only library, so there is no need to install anything.
+This is a header-only library, so there is no need to install anything. It is a wrapper around the odeint-boost package
 
 ### Prerequisites
 - boost (at least version 1.61, this is the oldest version it was tested with)
 - for installation: cmake (lowest tested version is 3.0)
 - for documentations: doxygen
+- NLopt (at least version 2.5)
 
 ### Installing (optional)
 
@@ -21,15 +32,15 @@ For the installation change into the source directory and do:
 cmake . && make install
 ```
 
-To use the library in a program it has to be gnerated with cmake in the ```CMakeLists.txt``` it can be found like any other package:
+To use the library in a program it has to be build with cmake. It can then be found like any other package.
 ```
 find_package(nonliear_systems REQUIRED)
 ```
-It can than be linked to any target:
+To link the library just use
 ```
 target_link_libraries(target nonlinear_systems)
 ```
-When including it like this the ```Boost_INCLUDE_DIRS``` has to be set and included. An example CMakeLists could look like this
+When including it like this, the ```Boost_INCLUDE_DIRS``` and ```NLOPT_INCLUDE_DIRS``` has to be set and included. An example CMakeLists could look like this
 ```
 cmake_minimum_required(VERSION 3.0)
 project(TEST_APP CXX)
@@ -37,6 +48,9 @@ project(TEST_APP CXX)
 find_package(nonlinear_systems REQUIRED)
 find_package(Boost)
 include_directories(${Boost_INCLUDE_DIRS})
+
+find_package(NLopt 2.5.0)
+include_directories(${NLOPT_INCLUDE_DIRS})
 
 add_executable(test_app test_app.cpp)
 target_link_libraries(test_app nonlinear_systems)
@@ -60,45 +74,56 @@ cd docs && doxygen
 The html-doc can then be found in ``` html/index.html ```.
 
 ## Example
-Say you want to integrate the harmonic oscillator and get the position after some time. Assuming the files were installed it will be
+Say you want to integrate the harmonic oscillator and calculate the position.
 ```
-#include <vector>
 #include <iostream>
+#include <vector>
 #include <nonlinear_systems/systems/generic_system.hpp>
+#include <nonlinear_systems/observers/position_observer.hpp>
 
-using namespace std;
-using namespace nonlinear_systems;
+namespace nl = nonlinear_systems;
 
-typedef vector<double> state_type;
+typedef  std::vector<double> state_type;
 
-// Define the ODE to solve with frequency omega = 1
-class HarmonicOscillator {
+class HarmonicOscillatorODE {
   public:
-    double omega = 1.;
+    double _omega;
 
-    HarmonicOscillator(void* params) {};
+    HarmonicOscillatorODE(void* params) {
+      _omega = reinterpret_cast<double*>(params)[0];
+    }
 
-    void operator()(const state_type& x, state_type& dx, const double t) {
+    void operator()(const state_type& x, state_type& dx, double t) {
       dx[0] = x[1];
-      dx[1] = -omega*omega*x[0];
+      dx[1] = -_omega*_omega*x[0];
     }
 };
 
 int main() {
-  GenericSystem<HarmonicOscillator> system = GenericSystem<HarmonicOscillator>(1, 2, NULL);
-
-  // Set the initial condition
-  state_type x_0 {1., 0.};
-  system.SetPosition(x_0);
-
-  // Integrate the system with timestep 0.01 for 10000 steps
-  double dt = 0.01;
-  unsigned int n_steps = 10000;
-  system.Integrate(dt, n_steps);
-
-  // Get the position
-  state_type x = system.GetPosition();
-  double t = system.GetTime();
-  cout << "t = " << t << ", x = {" << x[0] << ", " << x[1] << "}" << endl;
+  double omega[] = {1.};  // define the frequency
+  auto HarmonicOsc = nl::GenericSystem<HarmonicOscillatorODE>(1, 2, omega);
+  state_type initial = {0., 1.};
+  HarmonicOsc.SetPosition(initial);  // set the initial condition
+  std::vector<state_type> x; std::vector<double> t;  // container for the pos.
+  double dt = 0.1; int n_steps = 10;
+  HarmonicOsc.Integrate(dt, n_steps, nl::PositionObserver<state_type>(x, t));
+  for (size_t i = 0; i < x.size(); ++i) {
+    std::cout << t[i] << ": (" <<
+      x[i][0] << ", " << x[i][1] << ")" << std::endl;
+  }
 }
+```
+The output of this program is
+```
+0: (0, 1)
+0.1: (0.0998333, 0.995004)
+0.2: (0.198669, 0.980067)
+0.3: (0.29552, 0.955337)
+0.4: (0.389418, 0.921061)
+0.5: (0.479425, 0.877583)
+0.6: (0.564642, 0.825336)
+0.7: (0.644217, 0.764843)
+0.8: (0.717356, 0.696707)
+0.9: (0.783326, 0.621611)
+1: (0.84147, 0.540303)
 ```
