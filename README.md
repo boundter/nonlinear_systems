@@ -12,6 +12,16 @@ Nonlinear Systems contains a generic interface for integrating ordinary differen
   - test for executing the unit-tests
 - [NLopt](https://github.com/stevengj/nlopt) (may become voluntary in the future)
 
+## Whats In There?
+
+nonlinear_systems is a framework to increase the readability of numerical integration of ODEs. A nice side effect is the reduction of bugs. The most important part is the ```GenericSystem``` in ```<nonlinear_systems/systems/generic_system.hpp>```. This class acts as a wrapper around the ODE and keeps track of the current state of the system. It takes the ODE as a type, where the ```operator()``` of the ODE calculates the ODE for given ```x``` and ```t```. The interaction with the system is then handled by ```GenericSystem```.
+
+There are simple methods to get the current time or state, as well as more complicated ones to calculate the period for a given poincare surface. For a system of multiple units, there is also the posibility to calculate the mean field. The observation during the integration are handled by [observers for odeint](https://www.boost.org/doc/libs/1_66_0/libs/numeric/odeint/doc/html/boost_numeric_odeint/getting_started/short_example.html). Some generic ones are included in ```nonlinear_systems/observers```. For more complicated systems, where different methods are needed, there is the possibility to inherit from ```GenericSystem```.
+
+A similar framework for networks of ODEs is also available in ```GenericNetwork```. The functions are similar and allow a conversion between thinking in terms of 2d-vectors, as well as a flattened representation.
+
+Finally there are some ODEs prepacked, like the Kuramoto-model or the harmonic oscillator. Everything mentioned is unit tested, although the coverage is not quite 100%.
+
 ## Getting Started
 This is a header-only library, so there is no need to install anything. It is a wrapper around the odeint-boost package
 
