@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include <sstream>
+#include <fstream>
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
@@ -237,13 +238,26 @@ class WriteArgumentsToFile {
         fflush(file);
       }
 
+    WriteArgumentsToFile(std::vector<std::unique_ptr<ArgumentBase>>& arguments, 
+    std::fstream* file): arguments(arguments) {
+      *file << "#";
+      WriteArgument(file);
+      *file << "\n";
+      file->flush();
+    }
+
   protected:
 
     void WriteArguments() {
       for (auto it = arguments.begin(); it != arguments.end(); ++it) {
-        fprintf(file, " %s=%s", (*it)->GetName().c_str(), 
+        fprintf(file, " %s=%s", (*it)->GetName().c_str(),
             (*it)->GetValueAsString().c_str());
       }
+    }
+
+    void WriteArgument(std::fstream* file_stream) {
+      for (auto it = arguments.begin(); it != arguments.end(); ++it)
+        *file_stream << " " << (*it)->GetName() << "=" << (*it)->GetValueAsString();
     }
 };
 } // nonlinear_systems

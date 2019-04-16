@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include <nonlinear_systems/misc/parse_arguments.hpp>
+#include "../include/nonlinear_systems/misc/parse_arguments.hpp"
 
 using namespace nonlinear_systems;
 
