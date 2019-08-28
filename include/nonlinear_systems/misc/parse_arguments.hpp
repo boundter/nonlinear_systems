@@ -29,6 +29,13 @@ namespace std
     }
     return os;
   }
+
+  std::ostream& operator<<(std::ostream& os, const std::vector<int>& vec) {
+    for (auto item : vec) {
+      os << item << " ";
+    }
+    return os;
+  }
 }
 
 
@@ -177,6 +184,19 @@ template<> std::string Argument<std::vector<double>>
 
 
 template<> std::string Argument<std::vector<unsigned int>>
+::GetValueAsString() {
+  std::stringstream ss;
+  for (auto it = value.begin(); it != value.end(); ++it) {
+    ss << (*it);
+    if (it + 1 != value.end()) {
+      ss << ",";
+    }
+  }
+  return ss.str();
+}
+
+
+template<> std::string Argument<std::vector<int>>
 ::GetValueAsString() {
   std::stringstream ss;
   for (auto it = value.begin(); it != value.end(); ++it) {
