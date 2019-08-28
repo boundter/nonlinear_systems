@@ -21,8 +21,8 @@ namespace std
     }
     return os;
   }
-  
-  
+
+
   std::ostream& operator<<(std::ostream& os, const std::vector<unsigned int>& vec) {
     for (auto item : vec) {
       os << item << " ";
@@ -47,7 +47,7 @@ struct ArgumentBase {
    *  @param short_name short name of the command line arguments.
    *  @param description description of the command line argument.
    */
-  ArgumentBase(std::string long_name, std::string short_name, std::string description) 
+  ArgumentBase(std::string long_name, std::string short_name, std::string description)
   : short_name(short_name), long_name(long_name), description(description){
     name = long_name + "," + short_name;
   }
@@ -87,7 +87,7 @@ struct Argument: public ArgumentBase {
    *  @param default_value default_value of the argument.
    */
   Argument(std::string long_name, std::string description, T& value, T default_value)
-  : ArgumentBase(long_name, description), value(value), 
+  : ArgumentBase(long_name, description), value(value),
   default_value(default_value) { }
 
 
@@ -98,9 +98,9 @@ struct Argument: public ArgumentBase {
    *  @param value variable holding the argument.
    *  @param default_value default_value of the argument.
    */
-  Argument(std::string long_name, std::string short_name, std::string description, 
+  Argument(std::string long_name, std::string short_name, std::string description,
       T& value, T default_value)
-  : ArgumentBase(long_name, short_name, description), value(value), 
+  : ArgumentBase(long_name, short_name, description), value(value),
   default_value(default_value) {}
 
 
@@ -110,7 +110,7 @@ struct Argument: public ArgumentBase {
   void AddArgument(po::options_description& desc) {
     desc.add_options()
       (name.c_str(), po::value<T>()->default_value(default_value), description.c_str());
-  } 
+  }
 
 
   /*!
@@ -142,6 +142,14 @@ template<> void Argument<std::vector<double>>
 ::AddArgument(po::options_description& desc) {
   desc.add_options()
     (name.c_str(), po::value<std::vector<double>>()->multitoken()->
+     default_value(default_value), description.c_str());
+}
+
+
+template<> void Argument<std::vector<int>>
+::AddArgument(po::options_description& desc) {
+  desc.add_options()
+    (name.c_str(), po::value<std::vector<int>>()->multitoken()->
      default_value(default_value), description.c_str());
 }
 
@@ -192,7 +200,7 @@ class ParseArguments {
    *  Parse the values from the command line arguments to the variables given as
    *  Arguments. This also build the interface of the help message.
    */
-  ParseArguments(int& argc, char* argv[], 
+  ParseArguments(int& argc, char* argv[],
       std::vector<std::unique_ptr<ArgumentBase>>& arguments)
   : arguments(arguments) {
     po::options_description desc("Allowed options");
@@ -211,7 +219,7 @@ class ParseArguments {
     }
   }
 
-  
+
   void Parse(po::options_description& desc, po::variables_map& vmap) {
     if (vmap.count("help")) {
       std::cout << desc;
@@ -238,7 +246,7 @@ class WriteArgumentsToFile {
         fflush(file);
       }
 
-    WriteArgumentsToFile(std::vector<std::unique_ptr<ArgumentBase>>& arguments, 
+    WriteArgumentsToFile(std::vector<std::unique_ptr<ArgumentBase>>& arguments,
     std::fstream* file): arguments(arguments) {
       *file << "#";
       WriteArgument(file);
