@@ -30,9 +30,9 @@ class TwoHarmonicOscillators {
     }
 };
 
-bool CrossedPositiveYAxis(const state_type& previous_state, 
+bool CrossedPositiveYAxis(const state_type& previous_state,
     const state_type& current_state) {
-  return (current_state[1] > 0 and 
+  return (current_state[1] > 0 and
       (std::signbit(previous_state[0]) != std::signbit(current_state[0])));
 }
 
@@ -45,7 +45,7 @@ double LinearApprox(const state_type& previous_state, double previous_time,
 
 struct Harmonic {
   Harmonic() {
-    params[0] = 2.; 
+    params[0] = 2.;
     N = 1;
     dimension = 2;
     system = std::shared_ptr<GenericSystem<HarmonicOscillatorODE> > (
@@ -81,6 +81,21 @@ BOOST_FIXTURE_TEST_CASE(position, Harmonic) {
   state_type too_short = {0.1};
   BOOST_CHECK_THROW(system->SetPosition(too_long), std::length_error);
   BOOST_CHECK_THROW(system->SetPosition(too_short), std::length_error);
+}
+
+
+BOOST_FIXTURE_TEST_CASE(derivative, Harmonic) {
+  // Correctly returns the derivative without changing the position
+  state_type initial {0.5, 0.1};
+  system->SetPosition(initial);
+  state_type derivative = system->GetDerivative();
+  state_type position = system->GetPosition();
+  BOOST_REQUIRE_EQUAL(derivative.size(), dimension);
+  BOOST_CHECK_CLOSE(derivative[0], 0.1, 0.01);
+  BOOST_CHECK_CLOSE(derivative[1], -2., 0.01);
+  BOOST_REQUIRE_EQUAL(position.size(), initial.size());
+  BOOST_CHECK_CLOSE(position[0], initial[0], 0.01);
+  BOOST_CHECK_CLOSE(position[1], initial[1], 0.01);
 }
 
 
@@ -161,7 +176,7 @@ BOOST_FIXTURE_TEST_CASE(integrate, Harmonic){
   BOOST_REQUIRE_EQUAL(numerical.size(), analytical.size());
   BOOST_CHECK_CLOSE(numerical[0], analytical[0], 0.01);
   BOOST_CHECK_CLOSE(numerical[1], analytical[1], 0.01);
-  
+
   // Integrate increases time correctly
   double t_1 = system->GetTime();
   BOOST_CHECK_CLOSE(t, (t_1 - t_0), 0.000001);
@@ -234,7 +249,7 @@ BOOST_AUTO_TEST_CASE(calculate_mean_field_spherical){
   BOOST_REQUIRE_EQUAL(spherical_1.size(), 2);
   BOOST_CHECK_CLOSE(spherical_1[0], 0.2, 0.01);
   BOOST_CHECK_CLOSE(spherical_1[1], M_PI/2., 0.01);
-  
+
   // 2-dimensional; ODE will not be used, HarmonicOscillator as dummy
   GenericSystem<HarmonicOscillatorODE> system_2(4, 2, &params);
   state_type x_2 = {0., 5., 3., 2., 1., 3., 7., 8.};
@@ -243,7 +258,7 @@ BOOST_AUTO_TEST_CASE(calculate_mean_field_spherical){
   BOOST_REQUIRE_EQUAL(spherical_2.size(), 2);
   BOOST_CHECK_CLOSE(spherical_2[0], 5.27, 0.1);
   BOOST_CHECK_CLOSE(spherical_2[1], 1.0222, 0.1);
-  
+
   // 3-dimensional; ODE will not be used, HarmonicOscillator as dummy
   GenericSystem<HarmonicOscillatorODE> system_3(3, 3, &params);
   state_type x_3 = {0., 1., 5., 4., 2., 7., 5., 2., 4.};
@@ -257,7 +272,7 @@ BOOST_AUTO_TEST_CASE(calculate_mean_field_spherical){
 
 
 BOOST_FIXTURE_TEST_CASE(calculate_period, Harmonic){
-  // Integrate the system over 5 periods. For the initial conditions 
+  // Integrate the system over 5 periods. For the initial conditions
   // x(0) = 0 and y(0)=1 with omega = 2 we have T = pi
   double dt = 0.01;
   unsigned int n_average = 5;
@@ -279,7 +294,7 @@ BOOST_FIXTURE_TEST_CASE(calculate_period, Harmonic){
 
 
 BOOST_FIXTURE_TEST_CASE(calculate_period_with_observer, Harmonic){
-  // Integrate the system over 1 period. For the initial conditions 
+  // Integrate the system over 1 period. For the initial conditions
   // x(0) = 0 and y(0)=1 with omega = 1 we have T = pi
   double dt = 0.01;
   unsigned int n_average = 1;

@@ -18,16 +18,16 @@ namespace nonlinear_systems {
  *  it can be a phase oscillator or a general limit cycle one. For now it is
  *  limited to a use of oscillators of the same dimensionality.
  */
-template<typename ode_type, typename precision_type = double, 
-  typename stepper_type = 
+template<typename ode_type, typename precision_type = double,
+  typename stepper_type =
     boost::numeric::odeint::runge_kutta4<std::vector<precision_type> > >
-class GenericNetwork: protected GenericSystem<ode_type, 
+class GenericNetwork: protected GenericSystem<ode_type,
   std::vector<precision_type>, stepper_type> {
   public:
   typedef std::vector<precision_type> state_type;
   typedef std::vector<unsigned int> node_size_type;
   typedef std::vector<state_type> matrix_type;
-    
+
     /*!
      * The network is initialized to a zero state.
      *
@@ -37,7 +37,7 @@ class GenericNetwork: protected GenericSystem<ode_type,
      */
     GenericNetwork(node_size_type node_sizes, unsigned int dimension,
         void* parameters)
-      : GenericSystem<ode_type, state_type, stepper_type>(0, dimension, 
+      : GenericSystem<ode_type, state_type, stepper_type>(0, dimension,
           parameters) {
         _node_indices = CalculateNodeIndices(node_sizes);
         _node_sizes = node_sizes;
@@ -52,10 +52,10 @@ class GenericNetwork: protected GenericSystem<ode_type,
     void SetPosition(const state_type& new_state) {
       GenericSystem<ode_type, state_type, stepper_type>::SetPosition(new_state);
     }
- 
+
 
     /*!
-     * Gets the state in a flattened representation of the from 
+     * Gets the state in a flattened representation of the from
      * state = {node_1x_1, node_1x_2, ..., node_2x_1, ....}.
      */
     state_type GetPosition() {
@@ -64,13 +64,21 @@ class GenericNetwork: protected GenericSystem<ode_type,
 
 
     /*!
+     *  Gets the derivative in a flattened representation.
+     */
+    state_type GetDerivative() {
+      return GenericSystem<ode_type, state_type, stepper_type>::GetDerivative();
+    }
+
+
+    /*!
      * \brief Return the position in the state space in phases for all elements.
      *
      * Calculates the coordinates on a sphere of the same dimension as
      * the phase space. If the dimension is 1, the corrdinates will be wrapped
-     * around the unit circle as phases, otherise the first coordinate of every 
-     * element is the radius and the later ones are the phases. 
-     * Careful: in 3-d this is not the same as spherical coordinates with polar 
+     * around the unit circle as phases, otherise the first coordinate of every
+     * element is the radius and the later ones are the phases.
+     * Careful: in 3-d this is not the same as spherical coordinates with polar
      * angle and azimuth!
      */
     state_type GetPositionSpherical() {
@@ -93,7 +101,7 @@ class GenericNetwork: protected GenericSystem<ode_type,
       return nodes;
     }
 
-    
+
     /*!
      * Gets the indices of the beginning of every new node + (the last index + 1)
      * of the flattened representation.
@@ -107,7 +115,7 @@ class GenericNetwork: protected GenericSystem<ode_type,
      * Gets the time of the system.
      */
     double GetTime() {
-      GenericSystem<ode_type, state_type, stepper_type>::GetTime();  
+      GenericSystem<ode_type, state_type, stepper_type>::GetTime();
     }
 
 
@@ -119,7 +127,7 @@ class GenericNetwork: protected GenericSystem<ode_type,
     }
 
 
-    /*! 
+    /*!
      * Integrate the system in time.
      *
      * @param dt timestep
@@ -127,7 +135,7 @@ class GenericNetwork: protected GenericSystem<ode_type,
      * @param observer observer during the integration
      */
     template<typename observer_type = boost::numeric::odeint::null_observer>
-    void Integrate(double dt, unsigned int number_steps, 
+    void Integrate(double dt, unsigned int number_steps,
         observer_type observer = observer_type()) {
       GenericSystem<ode_type, state_type, stepper_type>::template
         Integrate<observer_type>(dt, number_steps, observer);
@@ -169,7 +177,7 @@ class GenericNetwork: protected GenericSystem<ode_type,
   protected:
     node_size_type _node_indices;
     node_size_type _node_sizes;
-    
+
     /*!
      * The network is initialized to a zero state, without initializing the ode.
      *

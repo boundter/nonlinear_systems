@@ -2,7 +2,7 @@
 #define __GENERIC_SYSTEM__
 
 #include <memory> // unique_ptr
-#include <stdexcept> // length_error, 
+#include <stdexcept> // length_error,
 #include <vector>
 #include <boost/numeric/odeint/stepper/runge_kutta4.hpp>
 #include <boost/numeric/odeint/integrate/check_adapter.hpp>
@@ -38,7 +38,7 @@ class GenericSystem {
       _d = dimension;
       _x.resize(_N*_d);
       _t = 0.;
-      _ode = std::unique_ptr<GenericODE>(new GenericODE(parameters)); 
+      _ode = std::unique_ptr<GenericODE>(new GenericODE(parameters));
     }
 
 
@@ -49,15 +49,25 @@ class GenericSystem {
       return _x;
     }
 
-    
+
+    /*!
+     *  \brief Return the derivative at the current position at time.
+     */
+    state_type GetDerivative() {
+      state_type intermediate(_x.size());
+      _ode->operator()(_x, intermediate, _t);
+      return intermediate;
+    }
+
+
     /*!
      * \brief Return the position in the state space in phases for all elements.
      *
      * Calculates the coordinates on a sphere of the same dimension as
      * the phase space. If the dimension is 1, the corrdinates will be wrapped
-     * around the unit circle as phases, otherise the first coordinate of every 
-     * element is the radius and the later ones are the phases. 
-     * Careful: in 3-d this is not the same as spherical coordinates with polar 
+     * around the unit circle as phases, otherise the first coordinate of every
+     * element is the radius and the later ones are the phases.
+     * Careful: in 3-d this is not the same as spherical coordinates with polar
      * angle and azimuth!
      */
     state_type GetPositionSpherical() {
@@ -86,7 +96,7 @@ class GenericSystem {
       _x = new_position;
     }
 
-    
+
     /*!
      * \brief Change the number of oscillators.
      */
@@ -143,9 +153,9 @@ class GenericSystem {
      *
      * The pointer to member ode needs to be dereferenced here, this will
      * always be to the template parameter GenericODE.
-     */ 
+     */
     template <typename observer_type = boost::numeric::odeint::null_observer>
-      void Integrate(double dt, unsigned int number_steps, 
+      void Integrate(double dt, unsigned int number_steps,
           observer_type observer = boost::numeric::odeint::null_observer()) {
         _t = boost::numeric::odeint::integrate_n_steps(_stepper, (*_ode),
             _x, _t, dt, number_steps, observer);
@@ -159,7 +169,7 @@ class GenericSystem {
      *  state space.
      *
      *  This function calculates the period of the mean field. For one
-     *  oscillator this is the same as using the position. The period is 
+     *  oscillator this is the same as using the position. The period is
      *  calculated by measuring the time between crossings of the Poincare
      *  manifold, a surface in the state space that is crossed transversally
      *  by the trajectory.
@@ -212,7 +222,7 @@ class GenericSystem {
             }
             else {
               t_approx = ApproximateCrossingPoincareManifold(
-                  previous_state, current_time - dt, current_state, 
+                  previous_state, current_time - dt, current_state,
                   current_time);
             }
             times_of_crossing.push_back(t_approx);
@@ -229,7 +239,7 @@ class GenericSystem {
      *  \brief Integrates the system by a phase in the range (0, 2*pi)
      *
      *  Integrates the system by a phase \f$ \varphi \f$ defined with the period
-     *  \f$ T \f$ as 
+     *  \f$ T \f$ as
      *  \f[ \varphi = 2\pi \frac{t}{T}. \f]
      *
      *  @param phase length of the phase to integrate by.
@@ -237,7 +247,7 @@ class GenericSystem {
      *  @param dt the timestep.
      */
     template <typename observer_type = boost::numeric::odeint::null_observer>
-    void IntegrateByPhase(double phase, double T, double dt, 
+    void IntegrateByPhase(double phase, double T, double dt,
         observer_type observer = boost::numeric::odeint::null_observer()) {
       double time_difference = phase/(2*M_PI)*T;
       double steps = time_difference/dt;
@@ -245,7 +255,7 @@ class GenericSystem {
       // timestep
       this->Integrate(dt, static_cast<unsigned int>(steps), observer);
       // interate the last fraction
-      double remaining_time = time_difference 
+      double remaining_time = time_difference
         - dt*static_cast<double>(static_cast<unsigned int>(steps));
       this->Integrate(remaining_time, 1);
       // call the observer separately, because it will be called at the begin of
@@ -269,7 +279,7 @@ class GenericSystem {
      *  value of the crossing of the reference point/surface.
      */
     template <typename observer_type = boost::numeric::odeint::null_observer>
-    void IntegrateToReference(double dt, 
+    void IntegrateToReference(double dt,
         bool (*CrossedReference)(const state_type& /*previous_state*/,
                                  const state_type& /*current_state*/),
         observer_type observer = boost::numeric::odeint::null_observer()) {
@@ -286,7 +296,7 @@ class GenericSystem {
       }
     }
 
-    
+
   protected:
     std::unique_ptr<GenericODE> _ode;
     unsigned int _N, _d;
@@ -306,15 +316,15 @@ class GenericSystem {
       _t = 0.;
     }
 
-    
+
     // Calculate the mean field using iterators to allow easy calculation of the
     // mean field in a network
-    state_type CalculateMeanField(const iterator_type start, const 
+    state_type CalculateMeanField(const iterator_type start, const
         iterator_type end) {
       double N = static_cast<double>(end-start)/static_cast<double>(_d);
       if (N != static_cast<unsigned int>(N)) {
         throw std::length_error("Mean Field cannot be calculated, if not all oscillators are given.");
-      } 
+      }
       state_type mean_field(_d);
       // TODO: Check size
       for (iterator_type i = start; i < end; i += _d) {
@@ -328,7 +338,7 @@ class GenericSystem {
       return mean_field;
     }
 
-    
+
     // Calculate the mean field using iterators to allow easy calculation of the
     // mean field in a network
     state_type CalculateMeanFieldSpherical(const iterator_type start,
@@ -336,7 +346,7 @@ class GenericSystem {
       double N = static_cast<double>(end-start)/static_cast<double>(_d);
       if (N != static_cast<unsigned int>(N)) {
         throw std::length_error("Mean Field cannot be calculated, if not all oscillators are given.");
-      } 
+      }
       // for d = 1 wrap around unit circle
       state_type spherical_mean_field;
       if (_d == 1) {
@@ -350,7 +360,7 @@ class GenericSystem {
         spherical_mean_field[1] = atan2(y, x);
       }
       else {
-        spherical_mean_field = CartesianToSpherical(CalculateMeanField(start, 
+        spherical_mean_field = CartesianToSpherical(CalculateMeanField(start,
               end));
       }
       return spherical_mean_field;
